@@ -1,3 +1,48 @@
+**Live Site:** [https://just-give-up-atp.vercel.app](https://just-give-up-atp.vercel.app)  
+*Place this content inside `JustGiveupATP/README.md`:*
+
+```markdown
+# ⚔️ JustGiveupATP (JurisCards Arena) — The Legal Codex Card Battler
+
+> **Live Deployment:** [https://just-give-up-atp.vercel.app](https://just-give-up-atp.vercel.app)
+
+JurisCards Arena turns Philippine Republic Acts into a tabletop strategy battle game! Real legal problems become monsters, and Republic Acts become hero cards used to prove statutory elements and win trials.
+
+---
+
+## 🌟 What This Project Does
+
+- **Statutes as Heroes:** Hero power and defense stats dynamically scale using actual fines, sections, and ratings.
+- **Trial Encounters:** Solve real-life fact patterns by matching the exact elements of the violation.
+- **Shared Live Codex:** Dynamically loads hero cards from the **L-Lawliet** API.
+- **Offline Safeguard:** Includes a local fallback codex if the internet connection is disrupted during gameplay.
+
+---
+
+## 🔗 Connected Backend
+
+- **Source API:** `https://l-lawliet-three.vercel.app/api/v1/laws`
+- **Adapter Client:** `js/app.js` (`JurisAPI`)
+- **Key Header:** `x-api-key: student-api-key-123`
+
+---
+
+## 🛠️ How to Push Changes (Git Bash)
+
+To push engine updates or interface improvements to GitHub:
+
+```bash
+# 1. Stage all files
+git add .
+
+# 2. Commit your work
+git commit -m "feat: enhance battle logic and ui animations"
+
+# 3. Push to GitHub & Vercel
+git push origin main
+
+
+
 # JurisCards Arena ⚖️
 
 **The Legal Codex Card Battler.** Philippine Republic Acts are your Hero Cards; legal offenses, procedural flaws and multi-issue litigation are the Monsters and Bosses. Read the fact pattern, draft a party of statutes, and invoke the right law for every essential element before your Juris Power runs out.
@@ -86,17 +131,7 @@ This copies `L-Lawliet/api/index.py` to `api/index.py` and regenerates `data/cod
 2. Vercel serves the static files and runs `api/index.py` as a Python function. `vercel.json` rewrites `/api/*` to it, and `requirements.txt` lists `fastapi`, `uvicorn` and `pydantic`.
 3. To point the game at a different codex host, define `window.JURIS_CONFIG = { apiBase: "https://…/api/v1" }` before `js/app.js` loads. The L-Lawliet API allows all CORS origins.
 
-## Documentation
 
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): system design, data flow, API contract, module responsibilities, decisions
-- [docs/GAME_DESIGN.md](docs/GAME_DESIGN.md): rules, numbers, the case list, and how to add a case accurately
-- [CLAUDE.md](CLAUDE.md): working context for continuing development with Claude Code
-
-## Roadmap (from the PRD)
-
-- **Phase 2:** Multiplayer adversarial trials (Prosecution vs. Defense, 1v1)
-- **Phase 3:** Custom case and fact-pattern editor for professors and review centers
-- **Phase 4:** Supabase persistent profiles, deck customization, badges and win/loss analytics
 
 ## Credits
 
