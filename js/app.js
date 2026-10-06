@@ -10,12 +10,12 @@
   // 1. CONFIGURATION
   // Points directly to the primary L-Lawliet backend
   // ==========================================================
-  const API_URL = (global.JURIS_CONFIG && global.JURIS_CONFIG.apiBase) 
-    || "https://l-lawliet-three.vercel.app/api/v1"; 
-  const API_KEY = (global.JURIS_CONFIG && global.JURIS_CONFIG.apiKey) 
-    || "student-api-key-123";
-  const TIMEOUT_MS = (global.JURIS_CONFIG && global.JURIS_CONFIG.timeoutMs) 
-    || 6000;
+const API_URL = (global.JURIS_CONFIG && global.JURIS_CONFIG.apiBase) 
+  || "https://l-lawliet-three.vercel.app/api/v1"; 
+const API_KEY = (global.JURIS_CONFIG && global.JURIS_CONFIG.apiKey) 
+  || "student-api-key-123";
+const TIMEOUT_MS = (global.JURIS_CONFIG && global.JURIS_CONFIG.timeoutMs) 
+  || 6000;
 
   // Escape API/user text before putting it into innerHTML (prevents XSS)
   function escapeHtml(str) {
@@ -39,24 +39,20 @@
       return cache && Array.isArray(cache.laws) ? cache.laws : [];
     },
 
-    async _get(path) {
-      // file:// pages can't reach a relative API; skip straight to cache
+async _get(path) {
       if (global.location && global.location.protocol === "file:" && API_URL.startsWith("/")) {
         throw new Error("No API available from file://");
       }
-
       const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
       const timer = controller ? setTimeout(() => controller.abort(), TIMEOUT_MS) : null;
-
       try {
-        const res = await fetch(`${API_URL}${path}`, {
+        const res = await fetch(API_URL + path, {
           headers: { 
             "x-api-key": API_KEY,
             "Content-Type": "application/json"
           },
           signal: controller ? controller.signal : undefined,
         });
-
         if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
         return await res.json();
       } finally {
