@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.vercel/
+.env
+.env.*
+node_modules/
+.DS_Store
+Thumbs.db
+
+# graphify knowledge graph: local token-saving index, rebuilt by the post-commit hook
+graphify-out/
+
+# Claude Code per-machine settings (graphify hooks use absolute paths; launch.json is shared on purpose)
+.claude/settings.local.json
+.claude/settings.json

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JurisCards Arena</title>
+  <meta name="description" content="A tactical card battler where Philippine Republic Acts are your heroes and legal problems are the monsters. Built on the L-Lawliet Legal Codex.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/arena.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="JurisCards Arena home">
+      <span class="brand-mark">J</span>
+      <span class="brand-name">JurisCards <span>Arena</span></span>
+    </a>
+    <div class="topbar-meta">
+      <a class="btn btn-gold btn-sm" href="arena.html">Play</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">The Legal Codex Card Battler</p>
+        <h1>Republic Acts are your <em>heroes</em>. Legal problems are the <em>monsters</em>.</h1>
+        <p>Read the fact pattern, draft a party of Philippine statutes, and invoke the right law for every essential element. Misapply a statute and the court sustains the objection.</p>
+        <div class="hero-actions">
+          <a class="btn btn-gold" href="arena.html">Enter the Arena</a>
+          <a class="btn btn-ghost" href="#how">How it works</a>
+        </div>
+      </div>
+      <div class="hero-fan" id="heroFan" aria-hidden="true"></div>
+    </section>
+
+    <section class="feature-grid" aria-label="Features">
+      <div class="feature">
+        <span class="icon">📜</span>
+        <h3>Real statutes, real stats</h3>
+        <p>Every Hero Card is generated from the L-Lawliet Legal Codex. Power comes from actual minimum fines and impact ratings.</p>
+      </div>
+      <div class="feature">
+        <span class="icon">⚖️</span>
+        <h3>Prove every element</h3>
+        <p>Each case breaks down into the elements a lawyer must establish, each one tied to the section that covers it.</p>
+      </div>
+      <div class="feature">
+        <span class="icon">⚡</span>
+        <h3>Party synergies</h3>
+        <p>Pair the Cybercrime Law with Safe Spaces, or TRAIN with Ease of Doing Business, to unlock passive advantages.</p>
+      </div>
+      <div class="feature">
+        <span class="icon">📶</span>
+        <h3>Works offline</h3>
+        <p>If the API is unreachable, the arena falls back to a bundled codex without interrupting play.</p>
+      </div>
+    </section>
+
+    <section id="how">
+      <p class="eyebrow">Gameplay loop</p>
+      <h2 class="section-title" style="margin-bottom:16px">How a trial plays out</h2>
+      <ol class="loop-list">
+        <li><div><strong>Trial docket opened.</strong> <span>Read the incident fact pattern and the threat's HP and elements.</span></div></li>
+        <li><div><strong>Party inspection.</strong> <span>Review the 3–5 Republic Acts drafted into your hand. Inspect any of them for the full Gazette record.</span></div></li>
+        <li><div><strong>Tactical decision.</strong> <span>Invoke a Hero Statute, or play a procedural Action Card: Element Check, Request Clarification, Exception Shield, Reshuffle, Search Precedent.</span></div></li>
+        <li><div><strong>Adjudication.</strong> <span>Match: the element is established and the threat takes damage. Misapplication: objection sustained, you lose Juris Power.</span></div></li>
+        <li><div><strong>Case resolution.</strong> <span>Prove every element and bring the threat to 0 HP. The trial is logged and your rank advances.</span></div></li>
+      </ol>
+      <div style="text-align:center"><a class="btn btn-gold" href="arena.html">Open the Trial Docket</a></div>
+    </section>
+
+    <p class="disclaimer">For law students, bar reviewees, paralegals and civic-tech enthusiasts. Educational game. Not legal advice.</p>
+  </main>
+
+  <footer class="footer">JurisCards Arena · Powered by the L-Lawliet Legal Codex</footer>
+
+  <script src="data/codex-cache.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    // Decorative card fan, built from the bundled codex (no network needed)
+    (function () {
+      var fan = document.getElementById("heroFan");
+      var laws = (window.JURIS_CODEX_CACHE && window.JURIS_CODEX_CACHE.laws) || [];
+      var esc = JurisCards.escapeHtml;
+      ["RA 10173", "RA 10175", "RA 11313"].forEach(function (ra) {
+        var law = laws.find(function (l) { return l.ra_number === ra; });
+        if (!law) return;
+        var c = JurisCards.toHeroCard(law);
+        fan.insertAdjacentHTML("beforeend",
+          '<article class="hero-card cls-' + c.cls.key + '">' +
+            '<div class="card-top"><span class="ra">' + esc(c.ra) + '</span><span class="cls-icon">' + c.cls.icon + '</span></div>' +
+            '<h4 class="name">' + esc(c.name) + '</h4><span class="cls-label">' + esc(c.cls.label) + '</span>' +
+            '<div class="stats"><div class="stat"><b>' + c.pwr + '</b><small>PWR</small></div><div class="stat"><b>' + c.def + '</b><small>DEF</small></div></div>' +
+            '<p class="ability">' + esc(c.ability) + '</p>' +
+          '</article>');
+      });
+    })();
+  </script>
+</body>
+</html>

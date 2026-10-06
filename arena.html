@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Arena · JurisCards Arena</title>
+  <meta name="description" content="Defeat legal problems with Philippine Republic Acts in a turn-based card battler.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/arena.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="JurisCards Arena home">
+      <span class="brand-mark">J</span>
+      <span class="brand-name">JurisCards <span>Arena</span></span>
+    </a>
+    <div class="topbar-meta">
+      <span class="pill hide-sm" id="codexPill" title="Where statute data is coming from">
+        <span class="dot" id="codexDot"></span><span id="codexLabel">Loading codex…</span>
+      </span>
+      <span class="pill">Rank <strong id="rankPill">—</strong></span>
+    </div>
+  </header>
+
+  <!-- ======================= DOCKET (case select) ======================= -->
+  <main class="wrap" id="docketView">
+    <p class="eyebrow">Trial Docket</p>
+    <h1 class="section-title">Choose your case</h1>
+    <p class="section-sub">Each case is a legal problem with essential elements. Draft Republic Acts, invoke the right statute for each element, and win the case before your Juris Power runs out.</p>
+
+    <div class="docket-layout">
+      <div id="docketList" aria-live="polite"></div>
+
+      <aside>
+        <div class="panel">
+          <h3>YOUR STANDING</h3>
+          <div class="rank-name" id="rankName">Law Student</div>
+          <div class="rank-progress"><div id="rankBar" style="width:0%"></div></div>
+          <div class="muted" id="rankNext">Win cases to advance.</div>
+        </div>
+        <div class="panel">
+          <h3>PARTY SYNERGIES</h3>
+          <div class="synergy-ref" id="synergyRef"></div>
+        </div>
+        <div class="panel">
+          <h3>TRIAL HISTORY</h3>
+          <ul class="history-list" id="historyList"></ul>
+        </div>
+      </aside>
+    </div>
+    <p class="disclaimer">Educational game. Not legal advice. Statute data from the L-Lawliet Legal Codex; always verify against the Official Gazette.</p>
+  </main>
+
+  <!-- ======================= ENCOUNTER ======================= -->
+  <main class="wrap hidden" id="encounterView">
+    <button class="btn btn-ghost btn-sm" id="backToDocket" type="button">← Docket</button>
+
+    <div class="arena-grid" style="margin-top:16px">
+      <!-- Threat -->
+      <section class="panel threat" id="threatPanel" aria-labelledby="threatName">
+        <div class="threat-head">
+          <div class="threat-sigil" id="threatSigil" aria-hidden="true"></div>
+          <div style="min-width:0;flex:1">
+            <p class="eyebrow" id="threatTier"></p>
+            <h2 id="threatName"></h2>
+          </div>
+        </div>
+        <div class="bar-label"><span>Threat HP</span><strong id="hpText"></strong></div>
+        <div class="bar hp" role="progressbar" aria-label="Threat HP" id="hpBarWrap"><div id="hpBar"></div></div>
+
+        <p class="docket-text" id="docketText"></p>
+        <ul class="facts" id="factsList"></ul>
+
+        <p class="eyebrow" style="margin-bottom:8px">Essential Elements</p>
+        <div class="elements" id="elementsList"></div>
+      </section>
+
+      <!-- Player status + log -->
+      <section class="panel status-panel" aria-label="Your status">
+        <div class="bar-label"><span>Juris Power</span><strong id="jpText"></strong></div>
+        <div class="bar jp" role="progressbar" aria-label="Juris Power" id="jpBarWrap"><div id="jpBar"></div></div>
+        <div class="stat-row">
+          <span class="pill">Turn <strong id="turnText">0</strong></span>
+          <span class="pill" title="The threat strikes every few turns">⏳ Strike in <strong id="clockText">3</strong></span>
+          <span class="pill hidden" id="shieldPill">🛡 <strong>Shield up</strong></span>
+        </div>
+        <div class="stat-row" id="synergyChips"></div>
+        <p class="eyebrow" style="margin:6px 0 8px">Court Record</p>
+        <ul class="log" id="battleLog" aria-live="polite"></ul>
+      </section>
+    </div>
+
+    <div class="hand-head">
+      <h3>YOUR PARTY · HERO STATUTES</h3>
+      <span class="muted" id="partyHint">Invoke a statute that establishes an open element.</span>
+    </div>
+    <div class="party" id="partyHand"></div>
+
+    <div class="hand-head">
+      <h3>PROCEDURAL CODEX · ACTION CARDS</h3>
+      <span class="muted">Every play takes a turn.</span>
+    </div>
+    <div class="actions-row" id="actionRow"></div>
+  </main>
+
+  <!-- ======================= MODALS ======================= -->
+  <div class="modal hidden" id="inspectModal" role="dialog" aria-modal="true" aria-labelledby="inspectTitle">
+    <div class="modal-box">
+      <button class="modal-close" type="button" data-close aria-label="Close">&times;</button>
+      <div id="inspectBody"></div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="searchModal" role="dialog" aria-modal="true" aria-labelledby="searchTitle">
+    <div class="modal-box">
+      <button class="modal-close" type="button" data-close aria-label="Close">&times;</button>
+      <h2 id="searchTitle">🔎 Search Precedent</h2>
+      <p class="muted">Query the Legal Codex and draft one Republic Act into your party.</p>
+      <form class="search-row" id="searchForm">
+        <label class="sr-only" for="searchInput">Search the codex</label>
+        <input id="searchInput" type="search" placeholder="e.g. privacy, harassment, permit, RA 10173" autocomplete="off">
+        <button class="btn btn-gold" type="submit">Search</button>
+      </form>
+      <p class="muted hidden" id="replaceHint" style="color:var(--danger);margin-bottom:10px">Your party is full: after choosing a statute, pick a party card to discard.</p>
+      <div class="search-results" id="searchResults"></div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="verdictModal" role="dialog" aria-modal="true" aria-labelledby="verdictTitle">
+    <div class="modal-box verdict" id="verdictBody"></div>
+  </div>
+
+  <div class="toast hidden" id="toast" role="status"></div>
+
+  <!-- Codex cache must load first: offline fallback for JurisAPI -->
+  <script src="data/codex-cache.js"></script>
+  <script src="data/cases.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/arena.js"></script>
+</body>
+</html>

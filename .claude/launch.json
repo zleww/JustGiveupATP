@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "arena",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["scripts/dev_server.py", "--port", "8077"],
+      "port": 8077
+    }
+  ]
+}
