@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JurisCards Arena · A card game about Philippine law</title>
+  <meta name="description" content="A card game for law students: Republic Acts are your hero cards and legal problems are the monsters. Prove every element with the right law to win the case.">
+  <link rel="icon" href="favicon.ico" sizes="48x48">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="theme-color" content="#060d14">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/arena.css">
+  <style>
+    :root { --ease: cubic-bezier(0.22, 1, 0.36, 1); }
+    html { scroll-behavior: smooth; }
+    .lp { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+    .lp-eyebrow { color: var(--gold-bright); font-size: 0.74rem; letter-spacing: 0.24em; text-transform: uppercase; font-weight: 600; }
+    .reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); transition-delay: var(--d, 0s); }
+    .reveal.in { opacity: 1; transform: none; }
+
+    /* ---------- Hero ---------- */
+    .lp-hero { position: relative; padding: 80px 0 90px; overflow: hidden; }
+    .lp-hero::before { content: ""; position: absolute; width: 700px; height: 700px; right: -200px; top: -260px; border-radius: 50%; background: radial-gradient(circle, rgba(227, 180, 103, 0.22), transparent 65%); animation: pulse 7s ease-in-out infinite; }
+    @keyframes pulse { 50% { transform: scale(1.12); opacity: 0.7; } }
+    .lp-hero .grid { position: relative; display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 40px; align-items: center; }
+    .lp-hero h1 { font-family: var(--font-display); font-size: clamp(2.2rem, 5.4vw, 4rem); line-height: 1.06; margin: 16px 0 18px; }
+    .lp-hero h1 em { font-style: normal; color: var(--gold-bright); }
+    .lp-hero p.lead { color: var(--text-muted); font-size: 1.08rem; max-width: 34em; margin-bottom: 28px; }
+    .lp-hero .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .fan { position: relative; height: 380px; }
+    .fan .hero-card { position: absolute; width: 210px; left: 50%; top: 40px; opacity: 0; transition: transform 1s var(--ease), opacity 0.6s; transform: translate(-50%, 60px) rotate(0); pointer-events: none; }
+    .fan.in .hero-card { opacity: 1; }
+    .fan.in .hero-card:nth-child(1) { transform: translate(-125%, 10px) rotate(-14deg); transition-delay: 0.1s; }
+    .fan.in .hero-card:nth-child(2) { transform: translate(-50%, -16px) rotate(0); z-index: 2; transition-delay: 0.25s; }
+    .fan.in .hero-card:nth-child(3) { transform: translate(25%, 10px) rotate(14deg); transition-delay: 0.4s; }
+    .fan .hero-card .card-actions { display: none; }
+
+    /* ---------- Steps ---------- */
+    .lp-section { padding: 90px 0; }
+    .lp-head { max-width: 660px; margin-bottom: 40px; }
+    .lp-head h2 { font-family: var(--font-display); font-size: clamp(1.7rem, 3.4vw, 2.5rem); line-height: 1.15; margin: 12px 0; }
+    .lp-head p { color: var(--text-muted); }
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .step { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
+    .step b { font-family: var(--font-display); color: var(--gold-bright); font-size: 1.6rem; }
+    .step h3 { font-family: var(--font-card); font-size: 1.1rem; margin: 8px 0 6px; }
+    .step p { color: var(--text-muted); font-size: 0.9rem; }
+
+    /* ---------- Trial demo ---------- */
+    .demo { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 18px; align-items: start; }
+    .demo .panel { margin: 0; }
+    .d-head { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+    .d-code { width: 46px; height: 46px; display: grid; place-items: center; border: 1px solid var(--border-strong); border-radius: 10px; font-family: var(--font-display); color: var(--gold-bright); }
+    .d-code.hit { animation: shake 0.4s; }
+    .d-head h3 { font-family: var(--font-card); font-size: 1.25rem; }
+    .d-docket { color: var(--text-muted); font-size: 0.92rem; margin: 12px 0 14px; }
+    .d-els { display: grid; gap: 8px; }
+    .d-el { border: 1px dashed var(--border-strong); border-radius: 8px; padding: 9px 12px; font-size: 0.88rem; color: var(--text-muted); transition: border-color 0.4s, background 0.4s, color 0.4s; }
+    .d-el.done { border-style: solid; border-color: rgba(95, 191, 143, 0.5); background: rgba(95, 191, 143, 0.08); color: var(--text-main); }
+    .d-log { list-style: none; display: grid; gap: 6px; font-size: 0.86rem; min-height: 150px; }
+    .d-log li { padding: 8px 10px; border-left: 2px solid var(--gold); background: rgba(255, 255, 255, 0.02); animation: logIn 0.5s var(--ease); }
+    .d-log li.win { border-color: var(--success); color: var(--success); }
+    @keyframes logIn { from { opacity: 0; transform: translateX(-10px); } }
+    .bar.hp > div { transition: width 0.7s var(--ease); }
+
+    /* ---------- Tiers & ranks ---------- */
+    .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .tier { background: var(--bg-panel); border: 1px solid var(--border); border-top: 3px solid var(--c); border-radius: var(--radius); padding: 22px; }
+    .tier h3 { font-family: var(--font-card); font-size: 1.2rem; margin: 10px 0 6px; }
+    .tier p { color: var(--text-muted); font-size: 0.9rem; }
+    .tier .tag { margin-top: 12px; display: inline-block; }
+    .ladder { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 30px; }
+    .rung { text-align: center; padding: 16px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-panel); transform: translateY(20px); opacity: 0; transition: transform 0.6s var(--ease), opacity 0.6s, border-color 0.6s; transition-delay: var(--d); }
+    .in .rung { transform: translateY(calc(var(--i) * -8px)); opacity: 1; }
+    .rung strong { display: block; font-family: var(--font-card); font-size: 0.98rem; }
+    .rung span { font-size: 0.75rem; color: var(--text-muted); }
+    .rung.top { border-color: var(--gold); }
+
+    .plans { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .plan { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 26px; }
+    .plan.best { border-color: var(--gold); background: linear-gradient(160deg, rgba(200, 155, 83, 0.14), var(--bg-panel) 55%); }
+    .plan h3 { font-family: var(--font-display); font-size: 1.4rem; }
+    .plan .price { color: var(--text-muted); margin: 4px 0 16px; }
+    .plan ul { list-style: none; display: grid; gap: 9px; margin-bottom: 22px; }
+    .plan li { padding-left: 20px; position: relative; }
+    .plan li::before { content: ""; position: absolute; left: 0; top: 0.68em; width: 10px; height: 2px; background: var(--gold); }
+    .plan li.off { color: var(--text-muted); }
+    .plan li.off::before { background: var(--border-strong); }
+
+    .final { text-align: center; padding: 100px 0 110px; }
+    .final h2 { font-family: var(--font-display); font-size: clamp(1.9rem, 4.4vw, 3.2rem); max-width: 16em; margin: 0 auto 16px; line-height: 1.12; }
+    .final p { color: var(--text-muted); margin-bottom: 28px; }
+    .final .ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    @media (max-width: 960px) {
+      .lp-hero .grid, .demo, .plans { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr 1fr; }
+      .tiers { grid-template-columns: 1fr; }
+      .ladder { grid-template-columns: repeat(3, 1fr); }
+      .lp-hero { padding: 48px 0 60px; }
+      .lp-section { padding: 64px 0; }
+    }
+    @media (max-width: 560px) {
+      .steps { grid-template-columns: 1fr; }
+      .ladder { grid-template-columns: 1fr 1fr; }
+      .in .rung { transform: none; }
+      .fan { height: 330px; }
+      .fan .hero-card { width: min(220px, 72%); }
+      .fan .hero-card:nth-child(1), .fan .hero-card:nth-child(3) { display: none; }
+      .fan.in .hero-card:nth-child(2) { transform: translate(-50%, 0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal, .fan .hero-card, .rung { opacity: 1 !important; transition: none !important; }
+      .reveal { transform: none !important; }
+      .lp-hero::before { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="landing.html" aria-label="JurisCards Arena">
+      <img class="brand-icon" src="icons/icon.svg" alt="" width="34" height="34">
+      <span class="brand-name">JurisCards <span>Arena</span></span>
+    </a>
+    <div class="topbar-meta">
+      <nav class="topnav" aria-label="Site">
+        <a href="#how">How it plays</a>
+        <a href="leaderboard.html">Leaderboard</a>
+      </nav>
+      <a class="btn btn-gold btn-sm" href="arena.html">Play free</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="lp-hero">
+      <div class="lp grid">
+        <div>
+          <p class="lp-eyebrow reveal">A card game for law students</p>
+          <h1 class="reveal" style="--d:0.08s">Win the case with <em>the right law.</em></h1>
+          <p class="lead reveal" style="--d:0.16s">Republic Acts are your hero cards. Cybercrime, harassment, red tape and data leaks are the monsters. Read the facts, prove every element with the correct statute, and keep your Juris Power above zero.</p>
+          <div class="ctas reveal" style="--d:0.24s">
+            <a class="btn btn-gold" href="arena.html">Play Tier 1 free</a>
+            <a class="btn btn-ghost" href="#how">How it plays</a>
+          </div>
+        </div>
+        <div class="fan" id="fan" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <section class="lp-section" id="how" style="padding-top: 20px">
+      <div class="lp">
+        <div class="lp-head reveal">
+          <p class="lp-eyebrow">How it plays</p>
+          <h2>Every move is a legal argument.</h2>
+          <p>Each case lists the elements a lawyer would have to prove. Play a law that does not fit and the court sustains the objection.</p>
+        </div>
+        <div class="steps">
+          <div class="step reveal"><b>1</b><h3>Read the docket</h3><p>A short fact pattern, the threat's HP and its hidden elements.</p></div>
+          <div class="step reveal" style="--d:0.1s"><b>2</b><h3>Draft your party</h3><p>Five Republic Acts. Inspect any of them for the full record.</p></div>
+          <div class="step reveal" style="--d:0.2s"><b>3</b><h3>Invoke or act</h3><p>Play a statute, or an action card like Element Check or Search Precedent.</p></div>
+          <div class="step reveal" style="--d:0.3s"><b>4</b><h3>Win the case</h3><p>Prove every element and bring the threat to 0 HP before your power runs out.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="lp-section" style="padding-top: 0">
+      <div class="lp">
+        <div class="demo">
+          <div class="panel reveal" id="demo">
+            <p class="lp-eyebrow" style="margin-bottom: 10px">Watch a trial</p>
+            <div class="d-head">
+              <div class="d-code" id="dCode">DI</div>
+              <div><p class="eyebrow" style="margin: 0">Tier 2 · Violations · Digital threat</p><h3 id="dName">The Digital Intruder</h3></div>
+            </div>
+            <div class="bar-label"><span>Threat HP</span><strong id="dHpText">75 / 75</strong></div>
+            <div class="bar hp"><div id="dHp" style="width: 100%"></div></div>
+            <p class="d-docket" id="dDocket">After a breakup, Marco logged into his ex-partner's social media account, read her messages, deleted several conversations, and changed the recovery email.</p>
+            <div class="d-els" id="dEls"></div>
+          </div>
+          <div class="panel reveal" style="--d:0.12s">
+            <h3 style="font-family: var(--font-display); font-size: 0.95rem; letter-spacing: 0.06em; margin-bottom: 12px">COURT RECORD</h3>
+            <ul class="d-log" id="dLog"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="lp-section" style="padding-top: 0">
+      <div class="lp">
+        <div class="lp-head reveal">
+          <p class="lp-eyebrow">13 cases, 3 tiers</p>
+          <h2>From a late barangay permit to a debt-shaming syndicate.</h2>
+          <p>Every element cites the section of law that establishes it.</p>
+        </div>
+        <div class="tiers">
+          <div class="tier reveal" style="--c: var(--tier-1)"><span class="tier-badge t1">Tier 1</span><h3>Infractions</h3><p>Short cases with two elements: a missed processing deadline, a refused senior discount, a wrong tax deduction.</p><span class="tag">Free for guests</span></div>
+          <div class="tier reveal" style="--c: var(--tier-2); --d:0.1s"><span class="tier-badge t2">Tier 2</span><h3>Violations</h3><p>Three to four elements, with facts you have to uncover: hacked accounts, street harassment, leaked personal data.</p><span class="tag">Free account</span></div>
+          <div class="tier reveal" style="--c: var(--tier-3); --d:0.2s"><span class="tier-badge t3">Tier 3</span><h3>Boss litigation</h3><p>Cases that need more than one law to win, like an online lending app shaming borrowers.</p><span class="tag">Free account</span></div>
+        </div>
+
+        <div class="ladder reveal" id="ladder" style="--d:0.1s" aria-label="Ranks"></div>
+      </div>
+    </section>
+
+    <section class="lp-section" style="padding-top: 0">
+      <div class="lp">
+        <div class="lp-head reveal">
+          <p class="lp-eyebrow">Guest or account</p>
+          <h2>Start a case in ten seconds.</h2>
+          <p>Accounts are free and also work on L-Lawliet and JurisCards.</p>
+        </div>
+        <div class="plans">
+          <div class="plan reveal">
+            <h3>Guest</h3>
+            <p class="price">No sign-up</p>
+            <ul>
+              <li>Tier 1 cases</li>
+              <li>A pool of 10 laws</li>
+              <li>View the leaderboard</li>
+              <li class="off">Wins, rank and history saved</li>
+              <li class="off">Tier 2 and 3 cases</li>
+            </ul>
+            <a class="btn btn-ghost" href="arena.html">Play as a guest</a>
+          </div>
+          <div class="plan best reveal" style="--d:0.12s">
+            <h3>Free account</h3>
+            <p class="price">One account for all three sites</p>
+            <ul>
+              <li>All 13 cases in 3 tiers</li>
+              <li>Every law in your card pool</li>
+              <li>Wins, rank and trial history saved</li>
+              <li>A spot on the leaderboard</li>
+              <li>Game settings and profile</li>
+            </ul>
+            <a class="btn btn-gold" href="login.html?signup=1">Create a free account</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="final">
+      <div class="lp">
+        <h2 class="reveal">Make the Republic Acts stick by using them.</h2>
+        <p class="reveal" style="--d:0.1s">Free for students. Runs in the browser on phone or laptop.</p>
+        <div class="ctas reveal" style="--d:0.2s">
+          <a class="btn btn-gold" href="arena.html">Play Tier 1 free</a>
+          <a class="btn btn-ghost" href="leaderboard.html">See the leaderboard</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">JurisCards Arena · Laws from the L-Lawliet database · A study aid, not legal advice · <a href="index.html">Home</a> · <a href="https://l-lawliet-three.vercel.app/landing.html">L-Lawliet</a> · <a href="https://juris-card.vercel.app/landing.html">JurisCards</a></footer>
+
+  <script src="js/session.js"></script>
+  <script src="data/cases.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+  (function () {
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const $ = (id) => document.getElementById(id);
+    const esc = ArenaSession.esc;
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+    }, { threshold: 0.18 });
+    document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+    // The fan starts once the real cards are in, so they fly in instead of popping up.
+    const startFan = () => requestAnimationFrame(() => requestAnimationFrame(() => io.observe($("fan"))));
+
+    // ---------- Rank ladder ----------
+    $("ladder").innerHTML = ArenaSession.RANKS.map((r, i, all) =>
+      `<div class="rung${i === all.length - 1 ? " top" : ""}" style="--i:${i}; --d:${i * 0.12}s"><strong>${esc(r.name)}</strong><span>${r.wins} cases won</span></div>`).join("");
+
+    // ---------- Hero cards from the live database ----------
+    function cardHTML(c) {
+      return `<article class="hero-card cls-${c.cls.key}"><div class="card-top"><span class="ra">${esc(c.ra)}</span><span class="cls-icon">${esc(c.cls.icon)}</span></div>
+        <h4 class="name">${esc(c.name)}</h4><span class="cls-label">${esc(c.cls.label)}</span>
+        <div class="stats"><div class="stat"><b>${c.pwr}</b><small>PWR</small></div><div class="stat"><b>${c.def}</b><small>DEF</small></div></div>
+        <p class="ability">${esc(c.ability)}</p></article>`;
+    }
+
+    // ---------- Trial demo: a real case, played with the right laws ----------
+    const caseDef = JURIS_CASES.find((c) => c.id === "digital-intruder");
+    $("dDocket").textContent = caseDef.docket;
+    $("dEls").innerHTML = caseDef.elements.map((e, i) => `<div class="d-el" id="el${i}">E${i + 1} · ${esc(e.label)}</div>`).join("");
+
+    function runDemo() {
+      const steps = [
+        { log: "You invoke RA 10175, the Cybercrime Prevention Act.", el: null, hp: 75 },
+        { log: "Element established: access to a computer system or account.", el: 0, hp: 50 },
+        { log: "RA 10175 proves the conversations were deleted without right.", el: 2, hp: 26 },
+        { log: "Request Clarification: the owner never shared her password.", el: null, hp: 26 },
+        { log: "RA 10175 proves the access was without right.", el: 1, hp: 0 },
+        { log: "Every element proven. Case won.", el: null, hp: 0, win: true },
+      ];
+      const log = $("dLog");
+      log.innerHTML = "";
+      caseDef.elements.forEach((_, i) => $("el" + i).classList.remove("done"));
+      $("dHp").style.width = "100%";
+      $("dHpText").textContent = `${caseDef.hp} / ${caseDef.hp}`;
+      steps.forEach((s, n) => setTimeout(() => {
+        const li = document.createElement("li");
+        li.textContent = s.log;
+        if (s.win) li.className = "win";
+        log.appendChild(li);
+        if (s.el !== null) {
+          $("el" + s.el).classList.add("done");
+          const hp = Math.round(caseDef.hp * s.hp / 75);
+          $("dHp").style.width = `${hp / caseDef.hp * 100}%`;
+          $("dHpText").textContent = `${hp} / ${caseDef.hp}`;
+          const code = $("dCode"); code.classList.remove("hit"); void code.offsetWidth; code.classList.add("hit");
+        }
+      }, reduce ? 0 : 900 + n * 1300));
+    }
+    let played = false;
+    new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !played) { played = true; runDemo(); if (!reduce) setInterval(runDemo, 13000); }
+    }, { threshold: 0.4 }).observe($("demo"));
+
+    JurisAPI.getLaws().then((laws) => {
+      const picks = ["RA 10173", "RA 10175", "RA 11313"].map((ra) => laws.find((l) => l.ra_number === ra)).filter(Boolean);
+      $("fan").innerHTML = picks.map((l) => cardHTML(JurisCards.toHeroCard(l))).join("");
+      startFan();
+    }).catch(() => {});
+  })();
+  </script>
+</body>
+</html>
