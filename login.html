@@ -106,7 +106,7 @@
           <p class="msg err" id="googleError" role="alert" style="text-align:center"></p>
         </div>
 
-        <a class="guest-link" id="guestLink" href="arena.html">Play as a guest</a>
+        <a class="guest-link" id="guestLink" href="index.html?guest=1">Continue as a guest</a>
       </section>
     </div>
   </main>
@@ -123,7 +123,7 @@
     // Only return to one of this site's own pages.
     const nextParam = params.get("next") || "";
     const next = /^[a-z-]+\.html(\?[^#]*)?$/i.test(nextParam) && !nextParam.startsWith("login.html") ? nextParam : "index.html";
-    $("guestLink").href = next === "index.html" ? "arena.html" : next;
+    $("guestLink").href = next === "index.html" ? "index.html?guest=1" : next;
 
     if (getAuth() && !params.get("expired")) { location.href = next; return; }
     if (params.get("expired")) {
