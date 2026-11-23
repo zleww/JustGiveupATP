@@ -10,7 +10,7 @@ Rules and numbers for JurisCards Arena. All tunables live in `RULES` in [js/engi
 4. **Adjudication.**
    - **Match:** the invoked RA is in an open, unsealed element's `counters`. That element is established, its statutory basis is shown, and the threat takes damage.
    - **Misapplication:** *Objection sustained!* The player loses Juris Power.
-5. **Case resolution.** When every element is established and HP hits 0, the case is won. The trial is logged and the rank advances.
+5. **Case resolution.** When every element is established and HP hits 0, the case is won. Signed-in players get the trial saved and the rank goes up.
 
 ## Numbers
 
@@ -32,18 +32,18 @@ Starting action charges per encounter: Element Check ×2, Request Clarification 
 
 | Card | Effect |
 |---|---|
-| ⚖ Element Check | Establishes a pending *procedural* element (`resolvedBy: "elementCheck"`). Otherwise it reveals the next unidentified element and the class of statute it needs. Not spent if there's nothing to reveal. |
-| ❓ Request Clarification | Reveals the next hidden fact, which unseals elements with `requiresFact`, and establishes a pending `resolvedBy: "clarify"` element. Not spent if there's nothing to uncover. |
-| 🛡 Exception Shield | Blocks the next incoming damage (misapplication or clock). It doesn't stack. |
-| 🔄 Reshuffle Party | Redrafts 5 cards, keeping the playable-card guarantee. |
-| 🔎 Search Precedent | Runs `JurisAPI.searchLaws(query)` and drafts the chosen RA. If the party is full, the player picks a card to discard. |
+| Element Check | Establishes a pending *procedural* element (`resolvedBy: "elementCheck"`). Otherwise it reveals the next unidentified element and the class of statute it needs. Not spent if there's nothing to reveal. |
+| Request Clarification | Reveals the next hidden fact, which unseals elements with `requiresFact`, and establishes a pending `resolvedBy: "clarify"` element. Not spent if there's nothing to uncover. |
+| Exception Shield | Blocks the next incoming damage (misapplication or clock). It doesn't stack. |
+| Reshuffle Party | Redrafts 5 cards, keeping the playable-card guarantee. |
+| Search Precedent | Runs `JurisAPI.searchLaws(query)` and drafts the chosen RA. If the party is full, the player picks a card to discard. |
 
 ## Synergies (PRD §4.2)
 
 | Synergy | Trigger | Effect |
 |---|---|---|
-| ⚡ Digital Protection | RA 10175 + RA 11313 in party | +15% strike damage vs. `digital: true` cases. +1 Request Clarification (once per encounter). |
-| 🛡 Fiscal Due Process | RA 10963 + RA 11032 in party | Passive shield: the first misapplication penalty each encounter is blocked. |
+| Digital Protection | RA 10175 + RA 11313 in party | +15% strike damage vs. `digital: true` cases. +1 Request Clarification (once per encounter). |
+| Fiscal Due Process | RA 10963 + RA 11032 in party | Passive shield: the first misapplication penalty each encounter is blocked. |
 
 ## Ranks
 
@@ -56,7 +56,17 @@ Starting action charges per encounter: Element Check ×2, Request Clarification 
 | Partner | 10 |
 | Justice | 13 |
 
-Stored in `localStorage` under `juriscards.profile.v1`: `{ wins, won: {caseId: true}, history: [...] }`, with the last 50 trials kept.
+"Cases won" counts different cases, so replaying a case does not raise your rank. For signed-in players every finished trial (won or lost) is saved to the `arena_results` table in the L-Lawliet database through `POST /api/v1/arena/results`, and the rank, history and leaderboard are worked out from those rows. Guests get the same rank display, kept in `sessionStorage` until the tab closes.
+
+## Guests and accounts
+
+| | Guest | Signed in |
+|---|---|---|
+| Cases | Tier 1 only | All tiers |
+| Card pool | The 10 laws the API gives guests | Every law |
+| Results | Kept until the tab closes | Saved, shown on the leaderboard |
+
+A case is also locked when one of its elements needs a law the player cannot read, which is how The Open Burner and The Schoolyard Shadow are locked for guests.
 
 ## Case docket
 
@@ -64,17 +74,17 @@ Stored in `localStorage` under `juriscards.profile.v1`: `{ wins, won: {caseId: t
 |---|---|---|---|---|
 | 1 | The Bureaucratic Delay | 55 | RA 11032/9485 · clarify | |
 | 1 | The Missing Fact | 50 | clarify · RA 9994 | |
-| 1 | Wrong Jurisdiction | 60 | RA 10175 · Element Check | ✓ |
+| 1 | Wrong Jurisdiction | 60 | RA 10175 · Element Check | Yes |
 | 1 | The Phantom Deduction | 55 | clarify · RA 10963 | |
 | 1 | The Open Burner | 55 | RA 9003 · RA 8749 | |
 | 1 | The Schoolyard Shadow | 50 | RA 10627 ×2 | |
-| 2 | The Digital Intruder | 75 | RA 10175 ×3 (1 sealed) | ✓ |
+| 2 | The Digital Intruder | 75 | RA 10175 ×3 (1 sealed) | Yes |
 | 2 | The Street Predator | 80 | RA 11313 ×4 (1 sealed) | |
-| 2 | The Data Discloser | 80 | RA 10173 ×4 (1 sealed) | ✓ |
+| 2 | The Data Discloser | 80 | RA 10173 ×4 (1 sealed) | Yes |
 | 2 | The Red-Tape Racketeer | 85 | RA 11032/9485 ×4 (1 sealed) | |
 | 2 | The Coercive Partner | 75 | RA 9262 ×3 (1 sealed) | |
-| 3 | The Debt-Shaming Syndicate | 115 | RA 10173 ×3 · clarify · RA 10175 | ✓ |
-| 3 | The Viral Harasser | 105 | RA 11313 ×3 · RA 10175/11313 (1 sealed) | ✓ |
+| 3 | The Debt-Shaming Syndicate | 115 | RA 10173 ×3 · clarify · RA 10175 | Yes |
+| 3 | The Viral Harasser | 105 | RA 11313 ×3 · RA 10175/11313 (1 sealed) | Yes |
 
 ## Adding a case
 

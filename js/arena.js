@@ -6,43 +6,59 @@
 document.addEventListener("DOMContentLoaded", () => {
   "use strict";
 
-  const { JurisAPI, JurisCards, JurisEngine, JURIS_CASES, JURIS_TIERS } = window;
+  const { JurisAPI, JurisCards, JurisEngine, JURIS_CASES, JURIS_TIERS, ArenaSession } = window;
+  const { getAuth, api, getJson, errorMessage, guestNotice, RANKS, rankIndex, GUEST_TIERS } = ArenaSession;
   const esc = JurisCards.escapeHtml;
   const $ = (id) => document.getElementById(id);
 
   // ==========================================================
-  // 1. PROFILE & RANK (localStorage; game still works if storage is blocked)
+  // 1. RECORD & RANK
+  // Signed-in players: saved in the L-Lawliet database through the API.
+  // Guests: kept in sessionStorage, so it is gone when the tab closes.
   // ==========================================================
-  const PROFILE_KEY = "juriscards.profile.v1";
-  const RANKS = [
-    { name: "Law Student", wins: 0 },
-    { name: "Bar Reviewee", wins: 2 },
-    { name: "Junior Associate", wins: 4 },
-    { name: "Senior Associate", wins: 7 },
-    { name: "Partner", wins: 10 },
-    { name: "Justice", wins: 13 },
-  ];
+  const signedIn = !!getAuth();
+  const GUEST_KEY = "arena_guest_record";
+  const emptyRecord = () => ({ cases_won: [], trials: 0, wins: 0, history: [] });
+  let record = emptyRecord();
+  let prefs = { confirm_abandon: true, reduce_motion: false, hide_won: false };
 
-  function loadProfile() {
-    try {
-      const raw = localStorage.getItem(PROFILE_KEY);
-      if (raw) return Object.assign({ wins: 0, won: {}, history: [] }, JSON.parse(raw));
-    } catch (e) { /* storage unavailable */ }
-    return { wins: 0, won: {}, history: [] };
+  function loadGuestRecord() {
+    try { return Object.assign(emptyRecord(), JSON.parse(sessionStorage.getItem(GUEST_KEY))); } catch (e) { return emptyRecord(); }
   }
-  function saveProfile() {
-    try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch (e) { /* ignore */ }
+  function saveGuestRecord() {
+    try { sessionStorage.setItem(GUEST_KEY, JSON.stringify(record)); } catch (e) { /* storage blocked */ }
   }
-  function rankFor(wins) {
-    let idx = 0;
-    RANKS.forEach((r, i) => { if (wins >= r.wins) idx = i; });
-    return idx;
+  function wonIds() { return new Set(record.cases_won.map((c) => c.case_id)); }
+
+  // Record a finished trial locally, so the screen updates at once.
+  function addToRecord(entry) {
+    record.trials += 1;
+    record.history.unshift(entry);
+    record.history = record.history.slice(0, 20);
+    if (!entry.won) return;
+    record.wins += 1;
+    const known = record.cases_won.find((c) => c.case_id === entry.case_id);
+    if (known) known.wins += 1;
+    else record.cases_won.push({ case_id: entry.case_id, wins: 1, best_turns: entry.turns, best_jp: entry.jp_left });
   }
 
-  let profile = loadProfile();
   let laws = [];
+  let lawRas = new Set();
   let state = null;
   let pendingDraft = null; // law chosen in Search Precedent while the party is full
+
+  // Short code shown on a case tile and in the threat panel, e.g. "BD" for The Bureaucratic Delay.
+  function caseCode(c) {
+    return c.name.replace(/^The\s+/i, "").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("");
+  }
+
+  // Why a case cannot be played right now, or null if it can.
+  function lockReason(c) {
+    if (!signedIn && !GUEST_TIERS.includes(c.tier)) return "Sign in to play Tier 2 and 3";
+    const missing = c.elements.some((el) => el.counters && !el.counters.some((ra) => lawRas.has(ra)));
+    if (missing) return signedIn ? "A law it needs is not in the database" : "Needs laws outside the guest preview";
+    return null;
+  }
 
   // ==========================================================
   // 2. SHARED RENDER HELPERS
@@ -80,28 +96,36 @@ document.addEventListener("DOMContentLoaded", () => {
   function closeModal(id) { $(id).classList.add("hidden"); }
 
   function renderRank() {
-    const idx = rankFor(profile.wins);
+    const casesWon = wonIds().size;
+    const idx = rankIndex(casesWon);
     const rank = RANKS[idx];
     const next = RANKS[idx + 1];
     $("rankPill").textContent = rank.name;
     $("rankName").textContent = rank.name;
     if (next) {
       const span = next.wins - rank.wins;
-      $("rankBar").style.width = `${Math.round(((profile.wins - rank.wins) / span) * 100)}%`;
-      $("rankNext").textContent = `${profile.wins} case${profile.wins === 1 ? "" : "s"} won · ${next.wins - profile.wins} more to ${next.name}`;
+      $("rankBar").style.width = `${Math.round(((casesWon - rank.wins) / span) * 100)}%`;
+      $("rankNext").textContent = `${casesWon} of ${JURIS_CASES.length} cases won. ${next.wins - casesWon} more to ${next.name}.`;
     } else {
       $("rankBar").style.width = "100%";
-      $("rankNext").textContent = `${profile.wins} cases won · Highest rank reached`;
+      $("rankNext").textContent = `All ${JURIS_CASES.length} cases won. Highest rank reached.`;
     }
+    $("rankSaved").textContent = signedIn ? "Saved to your account." : "Guest: not saved after you close this tab.";
   }
 
   // ==========================================================
   // 3. DOCKET SCREEN
   // ==========================================================
   function renderDocket() {
-    const tiers = [1, 2, 3];
-    $("docketList").innerHTML = tiers.map((t) => {
-      const cases = JURIS_CASES.filter((c) => c.tier === t);
+    const won = wonIds();
+    let hidden = 0;
+    $("docketList").innerHTML = [1, 2, 3].map((t) => {
+      const cases = JURIS_CASES.filter((c) => c.tier === t).filter((c) => {
+        const skip = prefs.hide_won && won.has(c.id);
+        if (skip) hidden += 1;
+        return !skip;
+      });
+      if (!cases.length) return "";
       return `
         <section class="tier-block">
           <div class="tier-head">
@@ -109,29 +133,35 @@ document.addEventListener("DOMContentLoaded", () => {
             <h2>${esc(JURIS_TIERS[t].label.split("·")[1] || JURIS_TIERS[t].name)}</h2>
           </div>
           <div class="case-grid">
-            ${cases.map((c) => `
-              <button class="case-tile" type="button" data-case="${esc(c.id)}">
-                <span class="sigil" aria-hidden="true">${c.sigil}</span>
+            ${cases.map((c) => {
+              const lock = lockReason(c);
+              return `
+              <button class="case-tile${lock ? " locked" : ""}" type="button" data-case="${esc(c.id)}" ${lock ? `aria-disabled="true" title="${esc(lock)}"` : ""}>
+                <span class="sigil" aria-hidden="true">${esc(caseCode(c))}</span>
                 <h3>${esc(c.name)}</h3>
                 <p>${esc(c.docket)}</p>
                 <span class="case-meta">
                   <span class="tag">${c.hp} HP</span>
                   <span class="tag">${c.elements.length} elements</span>
                   ${c.digital ? '<span class="tag digital">Digital threat</span>' : ""}
-                  ${profile.won[c.id] ? '<span class="tag won">✓ Won</span>' : ""}
+                  ${won.has(c.id) ? '<span class="tag won">Won</span>' : ""}
+                  ${lock ? `<span class="tag locked">${esc(lock)}</span>` : ""}
                 </span>
-              </button>`).join("")}
+              </button>`;
+            }).join("")}
           </div>
         </section>`;
-    }).join("");
+    }).join("") + (hidden ? `<p class="muted">${hidden} won case${hidden === 1 ? " is" : "s are"} hidden. You can show them again in Settings.</p>` : "");
 
     $("synergyRef").innerHTML = JurisCards.SYNERGIES.map((s) => `
-      <div><strong>${s.icon} ${esc(s.name)}</strong>${esc(s.requires.join(" + "))}: ${esc(s.effect)}</div>`).join("");
+      <div><strong>${esc(s.name)}</strong>${esc(s.requires.join(" + "))}: ${esc(s.effect)}</div>`).join("");
 
-    $("historyList").innerHTML = profile.history.length
-      ? profile.history.slice().reverse().map((h) => `
-          <li>${esc(h.name)}<span>${esc(new Date(h.date).toLocaleDateString())} · ${h.turns} turns · ${h.jp} JP left</span></li>`).join("")
-      : '<li style="border-color:var(--border-strong)" class="muted">No trials logged yet.</li>';
+    const names = Object.fromEntries(JURIS_CASES.map((c) => [c.id, c.name]));
+    $("historyList").innerHTML = record.history.length
+      ? record.history.map((h) => `
+          <li>${esc(names[h.case_id] || h.case_id)} <strong class="${h.won ? "won-text" : "lost-text"}">${h.won ? "Won" : "Lost"}</strong>
+            <span>${esc(ArenaSession.timeAgo(h.played_at))} · ${h.turns} turns · ${h.jp_left} JP left</span></li>`).join("")
+      : '<li style="border-color:var(--border-strong)" class="muted">No trials yet.</li>';
 
     renderRank();
   }
@@ -151,6 +181,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function startCase(caseId) {
     const caseDef = JURIS_CASES.find((c) => c.id === caseId);
     if (!caseDef || !laws.length) return;
+    const lock = lockReason(caseDef);
+    if (lock) {
+      showToast(lock + ".");
+      return;
+    }
     state = JurisEngine.createEncounter({ caseDef, laws });
     pendingDraft = null;
     $("battleLog").innerHTML = "";
@@ -159,7 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {
     $("threatPanel").style.setProperty("--tier-color", `var(--tier-${caseDef.tier})`);
     appendLog([{ type: "info", text: `Trial docket opened: ${caseDef.name}. You drafted ${state.party.map((c) => c.ra).join(", ")}.` }]);
     if (state.synergies.length) {
-      appendLog(state.synergies.map((s) => ({ type: "shield", text: `${s.icon} ${s.name} synergy active.` })));
+      appendLog(state.synergies.map((s) => ({ type: "shield", text: `${s.name} synergy active.` })));
     }
     renderEncounter();
     window.scrollTo({ top: 0 });
@@ -169,7 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const n = `<span class="el-num">E${i + 1}</span>`;
     if (el.established) {
       return `<div class="element established">
-        <div class="el-head">${n}<span>✓ ${esc(el.label)}</span></div>
+        <div class="el-head">${n}<span>Proven: ${esc(el.label)}</span></div>
         <div class="basis">${esc(el.basis)} <em>(${esc(el.by)})</em></div>
       </div>`;
     }
@@ -192,7 +227,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const c = state.caseDef;
     const every = JurisEngine.RULES.clockEvery;
 
-    $("threatSigil").textContent = c.sigil;
+    $("threatSigil").textContent = caseCode(c);
     $("threatTier").textContent = `${state.tier.label}${c.digital ? " · Digital threat" : ""}`;
     $("threatName").textContent = c.name;
     $("hpText").textContent = `${state.hp} / ${state.maxHp}`;
@@ -214,7 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
     $("clockText").textContent = `${every - (state.turn % every)} turn${every - (state.turn % every) === 1 ? "" : "s"}`;
     $("shieldPill").classList.toggle("hidden", !state.shieldActive);
     $("synergyChips").innerHTML = state.synergies
-      .map((s) => `<span class="synergy-chip" title="${esc(s.effect)}">${s.icon} ${esc(s.name)}</span>`).join("");
+      .map((s) => `<span class="synergy-chip" title="${esc(s.effect)}">${esc(s.name)}</span>`).join("");
 
     $("partyHand").innerHTML = state.party.map(heroCardHTML).join("");
     $("partyHint").textContent = pendingDraft
@@ -225,7 +260,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const active = state.status === "active";
     $("actionRow").innerHTML = Object.entries(JurisEngine.ACTION_META).map(([type, meta]) => `
       <button class="action-card" type="button" data-action="${type}" ${!active || !state.actions[type] ? "disabled" : ""}>
-        <span class="ac-top"><span class="ac-name">${meta.icon} ${esc(meta.name)}</span><span class="ac-count">×${state.actions[type]}</span></span>
+        <span class="ac-top"><span class="ac-name">${esc(meta.name)}</span><span class="ac-count">×${state.actions[type]}</span></span>
         <span class="ac-desc">${esc(meta.desc)}</span>
       </button>`).join("");
     document.querySelectorAll("#partyHand [data-invoke]").forEach((b) => { b.disabled = !active || !!pendingDraft; });
@@ -267,34 +302,43 @@ document.addEventListener("DOMContentLoaded", () => {
   function showVerdict() {
     const won = state.status === "won";
     const c = state.caseDef;
-    let rankUp = "";
-    if (won) {
-      const before = rankFor(profile.wins);
-      profile.wins += 1;
-      profile.won[c.id] = true;
-      profile.history.push({ caseId: c.id, name: c.name, turns: state.turn, jp: state.jp, date: new Date().toISOString() });
-      profile.history = profile.history.slice(-50);
-      saveProfile();
-      const after = rankFor(profile.wins);
-      if (after > before) rankUp = `<p style="color:var(--gold-bright);margin-top:10px">Promoted to <strong>${esc(RANKS[after].name)}</strong>!</p>`;
-      renderRank();
-    }
+    const before = rankIndex(wonIds().size);
+    const entry = { case_id: c.id, tier: c.tier, won, turns: state.turn, jp_left: Math.max(0, state.jp), played_at: new Date().toISOString() };
+    addToRecord(entry);
+    const after = rankIndex(wonIds().size);
+    const rankUp = after > before
+      ? `<p style="color:var(--gold-bright);margin-top:10px">Promoted to <strong>${esc(RANKS[after].name)}</strong>.</p>` : "";
+
     $("verdictBody").innerHTML = `
-      <div class="big" aria-hidden="true">${won ? "⚖️" : "📜"}</div>
-      <h2 id="verdictTitle">${won ? "Case Won" : "Case Dismissed"}</h2>
+      <p class="eyebrow">${esc(state.tier.label)}</p>
+      <h2 id="verdictTitle">${won ? "Case won" : "Case dismissed"}</h2>
       <p class="muted" style="margin-top:6px">${esc(c.name)} · ${state.turn} turns · ${state.jp} Juris Power left</p>
       ${won
-        ? "<p style=\"margin-top:14px\">Every element was proven with the correct statute. Trial logged to your history.</p>"
-        : "<p style=\"margin-top:14px\">Misapplied statutes and the docket clock drained your Juris Power. Review the elements and try again.</p>"}
+        ? '<p style="margin-top:14px">Every element was proven with the correct statute.</p>'
+        : '<p style="margin-top:14px">Misapplied statutes and the docket clock drained your Juris Power. Review the elements and try again.</p>'}
       ${rankUp}
+      <p class="muted" id="saveNote" style="margin-top:10px"></p>
       <div class="verdict-actions">
-        <button class="btn btn-gold" type="button" id="verdictDocket">Back to Docket</button>
+        <button class="btn btn-gold" type="button" id="verdictDocket">Back to docket</button>
         <button class="btn btn-ghost" type="button" id="verdictRetry">${won ? "Replay case" : "Retry case"}</button>
       </div>`;
     openModal("verdictModal");
     $("verdictDocket").onclick = () => { closeModal("verdictModal"); showDocket(); };
     $("verdictRetry").onclick = () => { closeModal("verdictModal"); startCase(c.id); };
     $("verdictDocket").focus();
+    renderRank();
+
+    const note = $("saveNote");
+    if (!signedIn) {
+      saveGuestRecord();
+      note.innerHTML = 'Guest result: kept until you close this tab. <a href="login.html?next=arena.html">Sign in</a> to save it and appear on the leaderboard.';
+      return;
+    }
+    note.textContent = "Saving to your trial history...";
+    const { played_at, ...body } = entry;
+    api("/arena/results", { method: "POST", body })
+      .then(async (res) => { note.textContent = res.ok ? "Saved to your trial history." : await errorMessage(res); })
+      .catch(() => { note.textContent = "Could not save this result."; });
   }
 
   // ==========================================================
@@ -330,7 +374,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <h4>Example Scenario</h4><p>${esc(law.example_scenario)}</p>
       <h4>Penalties</h4><p>${esc(law.penalties)}</p>
       <h4>Target Audience</h4><p>${esc(law.target_audience)}</p>
-      ${safeUrl ? `<h4>Official Source</h4><p><a href="${esc(safeUrl)}" target="_blank" rel="noopener noreferrer">Read the Official Gazette record →</a></p>` : ""}`;
+      ${safeUrl ? `<h4>Official Source</h4><p><a href="${esc(safeUrl)}" target="_blank" rel="noopener noreferrer">Read the Official Gazette record</a></p>` : ""}`;
   }
 
   // ==========================================================
@@ -346,7 +390,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function runSearch(query) {
     $("searchResults").innerHTML = '<p class="muted">Searching the codex…</p>';
-    const results = await JurisAPI.searchLaws(query);
+    let results;
+    try {
+      results = await JurisAPI.searchLaws(query);
+    } catch (err) {
+      $("searchResults").innerHTML = `<p class="muted">Search failed: ${esc(err.message)}</p>`;
+      return;
+    }
     if (!results.length) {
       $("searchResults").innerHTML = '<p class="muted">No statutes matched. Try a broader keyword.</p>';
       return;
@@ -416,7 +466,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   $("backToDocket").addEventListener("click", () => {
-    if (state && state.status === "active" && state.turn > 0 && !confirm("Abandon this trial? Progress in this case will be lost.")) return;
+    if (state && state.status === "active" && state.turn > 0 && prefs.confirm_abandon && !confirm("Abandon this trial? Progress in this case will be lost.")) return;
     showDocket();
   });
 
@@ -437,24 +487,35 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ==========================================================
-  // 9. BOOT — fetch the codex (live or cached), then show the docket
+  // 9. BOOT: load the laws (and the saved record when signed in), then show the docket
   // ==========================================================
   (async function boot() {
-    $("docketList").innerHTML = '<p class="muted">Opening the Legal Codex…</p>';
-    const started = performance.now();
-    laws = await JurisAPI.getLaws();
-    const live = JurisAPI.source === "live";
-    $("codexDot").className = `dot ${live ? "live" : "cache"}`;
-    $("codexLabel").textContent = live ? `Live codex · ${laws.length} laws` : `Offline codex · ${laws.length} laws`;
-    $("codexPill").title = live
-      ? "Statutes loaded from the L-Lawliet API (/api/v1/laws)"
-      : "API unreachable — using the cached codex bundled with the game";
-    if (!laws.length) {
-      $("docketList").innerHTML = '<p class="muted">The Legal Codex is unavailable. Please try again later.</p>';
+    $("docketList").innerHTML = '<p class="muted">Loading the laws...</p>';
+    try {
+      const requests = [JurisAPI.getLaws()];
+      if (signedIn) requests.push(getJson("/arena/me"));
+      const [lawList, saved] = await Promise.all(requests);
+      laws = lawList;
+      if (saved) {
+        record = { cases_won: saved.cases_won, trials: saved.trials, wins: saved.wins, history: saved.history };
+        prefs = saved.prefs;
+      } else {
+        record = loadGuestRecord();
+      }
+    } catch (err) {
+      $("codexDot").className = "dot";
+      $("codexLabel").textContent = "Laws unavailable";
+      $("docketList").innerHTML = `<p class="muted">Could not load the laws from the L-Lawliet database. ${esc(err.message)} Please try again in a moment.</p>`;
       return;
     }
+    lawRas = new Set(laws.map((l) => l.ra_number));
+    document.body.classList.toggle("reduce-motion", !!prefs.reduce_motion);
+    $("codexDot").className = "dot live";
+    $("codexLabel").textContent = signedIn ? `${laws.length} laws` : `Guest: ${laws.length} of ${JurisAPI.total} laws`;
+    $("codexPill").title = "Laws loaded from the L-Lawliet database";
+    $("guestNote").innerHTML = guestNotice(
+      `Playing as a guest: Tier 1 cases with ${laws.length} of ${JurisAPI.total} laws, and results are not saved.`);
     renderDocket();
-    console.info(`[Arena] Codex ready (${JurisAPI.source}) in ${Math.round(performance.now() - started)}ms`);
 
     // Deep link: arena.html?case=<id>
     const caseParam = new URLSearchParams(location.search).get("case");

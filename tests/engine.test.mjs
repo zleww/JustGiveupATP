@@ -1,5 +1,5 @@
 // Run with: node --test tests/
-// Loads the browser scripts into a sandbox (they attach to globalThis) — no build step needed.
+// Loads the browser scripts into a sandbox (they attach to globalThis), so no build step is needed.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -9,13 +9,12 @@ const root = new URL("../", import.meta.url);
 const sandbox = { console, Math, setTimeout, clearTimeout };
 sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
-for (const file of ["data/codex-cache.js", "data/cases.js", "js/app.js", "js/engine.js"]) {
-  // codex-cache.js assigns window.JURIS_CODEX_CACHE
+for (const file of ["tests/fixtures/laws.js", "data/cases.js", "js/app.js", "js/engine.js"]) {
   const src = readFileSync(new URL(file, root), "utf8").replace(/^window\./m, "globalThis.");
   vm.runInContext(src, sandbox, { filename: file });
 }
-const { JURIS_CASES, JURIS_CODEX_CACHE, JurisCards, JurisEngine } = sandbox;
-const laws = JURIS_CODEX_CACHE.laws;
+const { JURIS_CASES, TEST_LAWS, JurisCards, JurisEngine } = sandbox;
+const laws = TEST_LAWS;
 const byRa = (ra) => laws.find((l) => l.ra_number === ra);
 
 // Deterministic RNG (mulberry32)

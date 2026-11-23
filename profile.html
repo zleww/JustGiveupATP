@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile · JurisCards Arena</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/arena.css">
+  <style>
+    .profile-head { display: flex; gap: 18px; align-items: center; }
+    .big-avatar {
+      width: 64px; height: 64px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center;
+      background: var(--gold); color: #1a1206; font-family: var(--font-display); font-size: 1.7rem;
+    }
+    .profile-head h1 { font-family: var(--font-display); font-size: clamp(1.5rem, 3vw, 2rem); }
+    .bio { margin-top: 10px; max-width: 70ch; }
+    .case-row { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    .case-row:last-child { border-bottom: 0; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="JurisCards Arena home">
+      <span class="brand-mark">J</span>
+      <span class="brand-name">JurisCards <span>Arena</span></span>
+    </a>
+    <div class="topbar-meta">
+      <nav class="topnav" aria-label="Site">
+        <a href="arena.html">Play</a>
+        <a href="leaderboard.html">Leaderboard</a>
+      </nav>
+      <div class="account" data-account></div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="page-head">
+      <div class="profile-head">
+        <div class="big-avatar" id="avatar"></div>
+        <div>
+          <p class="eyebrow">Profile</p>
+          <h1 id="name">Loading</h1>
+          <p class="muted" id="meta"></p>
+        </div>
+      </div>
+      <p class="bio" id="bio"></p>
+      <p class="msg err" id="loadError" role="alert"></p>
+    </section>
+
+    <section class="stats-grid">
+      <div class="stat-box"><div class="label">Rank</div><div class="value" id="stRank">-</div><div class="note" id="stRankNote"></div></div>
+      <div class="stat-box"><div class="label">Cases won</div><div class="value" id="stCases">0</div><div class="note" id="stCasesNote"></div></div>
+      <div class="stat-box"><div class="label">Trials</div><div class="value" id="stTrials">0</div><div class="note" id="stWinRate"></div></div>
+      <div class="stat-box"><div class="label">Leaderboard</div><div class="value" id="stPlace">-</div><div class="note"><a href="leaderboard.html">See the full list</a></div></div>
+    </section>
+
+    <div class="grid-2">
+      <section class="panel">
+        <h2>Cases</h2>
+        <p class="sub">Your best result in each case you have won.</p>
+        <div id="caseList"></div>
+      </section>
+      <section class="panel">
+        <h2>Recent trials</h2>
+        <p class="sub">Your last 20 trials, won or lost.</p>
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>When</th><th>Case</th><th>Result</th><th>Turns</th></tr></thead>
+            <tbody id="trialRows"><tr><td colspan="4" class="empty">No trials yet.</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div class="row" style="margin-top:18px">
+      <a class="btn btn-gold" href="arena.html">Play</a>
+      <a class="btn btn-ghost" href="settings.html">Edit profile and settings</a>
+    </div>
+  </main>
+
+  <footer class="footer">JurisCards Arena · Laws from the L-Lawliet database</footer>
+
+  <script src="js/session.js"></script>
+  <script src="data/cases.js"></script>
+  <script>
+  (async function () {
+    const { requireLogin, getJson, getAuth, esc, timeAgo, RANKS, rankIndex } = ArenaSession;
+    if (!requireLogin()) return;
+    const $ = (id) => document.getElementById(id);
+
+    let me, arena, board;
+    try {
+      [me, arena, board] = await Promise.all([getJson("/me"), getJson("/arena/me"), getJson("/arena/leaderboard?limit=100")]);
+    } catch (err) {
+      $("name").textContent = "Profile";
+      $("loadError").textContent = err.message;
+      return;
+    }
+
+    const name = me.display_name || me.username;
+    $("avatar").textContent = name.charAt(0).toUpperCase();
+    $("name").textContent = name;
+    const since = me.created_at ? new Date(me.created_at).toLocaleDateString("en-PH", { month: "long", year: "numeric" }) : "";
+    $("meta").textContent = [`@${me.username}`, me.role === "admin" ? "Admin" : "Player", since && `Member since ${since}`]
+      .filter(Boolean).join(" · ");
+    $("bio").textContent = me.bio || "";
+
+    const total = JURIS_CASES.length;
+    const casesWon = arena.cases_won.length;
+    const idx = rankIndex(casesWon);
+    const next = RANKS[idx + 1];
+    $("stRank").textContent = RANKS[idx].name;
+    $("stRankNote").textContent = next ? `${next.wins - casesWon} more case${next.wins - casesWon === 1 ? "" : "s"} to ${next.name}` : "Highest rank";
+    $("stCases").textContent = casesWon;
+    $("stCasesNote").textContent = `of ${total} cases`;
+    $("stTrials").textContent = arena.trials;
+    $("stWinRate").textContent = arena.trials ? `${Math.round(arena.wins / arena.trials * 100)}% won` : "None yet";
+    const place = board.players.findIndex((p) => p.user_id === getAuth().id);
+    $("stPlace").textContent = place >= 0 ? `#${place + 1}` : "-";
+
+    const byId = Object.fromEntries(JURIS_CASES.map((c) => [c.id, c]));
+    const won = new Map(arena.cases_won.map((c) => [c.case_id, c]));
+    $("caseList").innerHTML = JURIS_CASES.map((c) => {
+      const w = won.get(c.id);
+      return `<div class="case-row"><span><span class="tier-badge t${c.tier}" style="margin-right:8px">T${c.tier}</span>${esc(c.name)}</span>
+        <span class="${w ? "won-text" : "muted"}">${w ? `Won ${w.wins}x · best ${w.best_turns} turns` : "Not won yet"}</span></div>`;
+    }).join("");
+
+    if (arena.history.length) {
+      $("trialRows").innerHTML = arena.history.map((h) => `
+        <tr><td>${esc(timeAgo(h.played_at))}</td><td>${esc(byId[h.case_id] ? byId[h.case_id].name : h.case_id)}</td>
+            <td class="${h.won ? "won-text" : "lost-text"}">${h.won ? "Won" : "Lost"}</td><td>${h.turns}</td></tr>`).join("");
+    }
+  })();
+  </script>
+</body>
+</html>

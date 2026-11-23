@@ -22,11 +22,11 @@
   };
 
   const ACTION_META = {
-    elementCheck: { name: "Element Check", icon: "⚖", desc: "Expose the next essential element and the class of law that establishes it." },
-    clarify: { name: "Request Clarification", icon: "❓", desc: "Uncover a hidden fact from the case docket." },
-    shield: { name: "Exception Shield", icon: "🛡", desc: "Raise a defense that blocks the next incoming damage." },
-    reshuffle: { name: "Reshuffle Party", icon: "🔄", desc: "Discard your party and draft a fresh one from the codex." },
-    search: { name: "Search Precedent", icon: "🔎", desc: "Query the codex and draft a specific Republic Act into your party." },
+    elementCheck: { name: "Element Check", desc: "Expose the next essential element and the class of law that establishes it." },
+    clarify: { name: "Request Clarification", desc: "Uncover a hidden fact from the case docket." },
+    shield: { name: "Exception Shield", desc: "Raise a defense that blocks the next incoming damage." },
+    reshuffle: { name: "Reshuffle Party", desc: "Discard your party and draft a fresh one from the codex." },
+    search: { name: "Search Precedent", desc: "Query the codex and draft a specific Republic Act into your party." },
   };
 
   function defaultRng() {
@@ -145,12 +145,12 @@
   function hurtPlayer(state, amount, cause, events, { misapplication = false } = {}) {
     if (state.shieldActive) {
       state.shieldActive = false;
-      events.push({ type: "shield", text: `🛡 Exception Shield absorbs ${amount} damage from ${cause}.` });
+      events.push({ type: "shield", text: `Exception Shield absorbs ${amount} damage from ${cause}.` });
       return;
     }
     if (misapplication && !state.fiscalShieldUsed && state.synergies.some((s) => s.id === "fiscal")) {
       state.fiscalShieldUsed = true;
-      events.push({ type: "shield", text: `🛡 Fiscal Due Process shield blocks the penalty from ${cause}.` });
+      events.push({ type: "shield", text: `Fiscal Due Process shield blocks the penalty from ${cause}.` });
       return;
     }
     state.jp = Math.max(0, state.jp - amount);
@@ -180,7 +180,7 @@
     state.turn += 1;
     if (state.turn % RULES.clockEvery === 0) {
       const dmg = Math.ceil(state.tier.attack / 2);
-      events.push({ type: "strike", text: `⏳ The docket clock runs — ${state.caseDef.name} presses its advantage.` });
+      events.push({ type: "strike", text: `The docket clock runs. ${state.caseDef.name} presses its advantage.` });
       hurtPlayer(state, dmg, "the docket clock", events);
     }
     return events;
@@ -203,7 +203,7 @@
     const card = state.party.find((c) => String(c.id) === String(cardId));
     if (!card) return events;
 
-    events.push({ type: "info", text: `You invoke ${card.ra} — ${card.name}.` });
+    events.push({ type: "info", text: `You invoke ${card.ra}, ${card.name}.` });
 
     // Prefer revealed elements, then docket order
     const candidates = openElements(state)
@@ -240,11 +240,11 @@
       const procedural = openElements(state).find((e) => e.resolvedBy === "elementCheck");
       const target = procedural || openElements(state).find((e) => !e.revealed);
       if (!target) {
-        events.push({ type: "info", noop: true, text: "Every element is already exposed — Element Check not spent." });
+        events.push({ type: "info", noop: true, text: "Every element is already exposed. Element Check not spent." });
         return events;
       }
       state.actions[type] -= 1;
-      events.push({ type: "info", text: `${meta.icon} ${meta.name}` });
+      events.push({ type: "info", text: meta.name });
       if (procedural) {
         establish(state, procedural, meta.name, events);
         damageThreat(state, RULES.proceduralDamage, events);
@@ -254,19 +254,19 @@
         events.push({
           type: "reveal",
           text: target.resolvedBy === "clarify"
-            ? `Exposed: "${target.label}" — established by uncovering a fact (Request Clarification).`
-            : `Exposed: "${target.label}" — needs a ${classes.join(" / ")} statute.`,
+            ? `Exposed: "${target.label}". Established by uncovering a fact (Request Clarification).`
+            : `Exposed: "${target.label}". Needs a ${classes.join(" / ")} statute.`,
         });
       }
     } else if (type === "clarify") {
       const hasFact = state.revealedFacts < state.caseDef.hiddenFacts.length;
       const procedural = openElements(state).find((e) => e.resolvedBy === "clarify");
       if (!hasFact && !procedural) {
-        events.push({ type: "info", noop: true, text: "No further facts on the docket — Request Clarification not spent." });
+        events.push({ type: "info", noop: true, text: "No further facts on the docket. Request Clarification not spent." });
         return events;
       }
       state.actions[type] -= 1;
-      events.push({ type: "info", text: `${meta.icon} ${meta.name}` });
+      events.push({ type: "info", text: meta.name });
       if (hasFact) {
         const fact = state.caseDef.hiddenFacts[state.revealedFacts];
         state.revealedFacts += 1;
@@ -283,11 +283,11 @@
       }
       state.actions[type] -= 1;
       state.shieldActive = true;
-      events.push({ type: "shield", text: "🛡 Exception Shield raised — the next incoming damage is blocked." });
+      events.push({ type: "shield", text: "Exception Shield raised. The next incoming damage is blocked." });
     } else if (type === "reshuffle") {
       state.actions[type] -= 1;
       draftParty(state);
-      events.push({ type: "info", text: `${meta.icon} You redraft your party: ${state.party.map((c) => c.ra).join(", ")}.` });
+      events.push({ type: "info", text: `You redraft your party: ${state.party.map((c) => c.ra).join(", ")}.` });
     } else {
       return events;
     }
@@ -310,10 +310,10 @@
       const idx = state.party.findIndex((c) => String(c.id) === String(replaceCardId));
       if (idx === -1) return events; // UI must ask which card to discard
       const [out] = state.party.splice(idx, 1, card);
-      events.push({ type: "info", text: `🔎 You draft ${card.ra} in place of ${out.ra}.` });
+      events.push({ type: "info", text: `You draft ${card.ra} in place of ${out.ra}.` });
     } else {
       state.party.push(card);
-      events.push({ type: "info", text: `🔎 You draft ${card.ra} into your party.` });
+      events.push({ type: "info", text: `You draft ${card.ra} into your party.` });
     }
     state.actions.search -= 1;
     refreshSynergies(state);

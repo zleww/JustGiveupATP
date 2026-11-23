@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings · JurisCards Arena</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/arena.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="JurisCards Arena home">
+      <span class="brand-mark">J</span>
+      <span class="brand-name">JurisCards <span>Arena</span></span>
+    </a>
+    <div class="topbar-meta">
+      <nav class="topnav" aria-label="Site">
+        <a href="arena.html">Play</a>
+        <a href="leaderboard.html">Leaderboard</a>
+      </nav>
+      <div class="account" data-account></div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="page-head">
+      <p class="eyebrow">Settings</p>
+      <h1 class="section-title">Settings</h1>
+      <p id="accountLine">Loading</p>
+      <p class="msg err" id="loadError" role="alert"></p>
+    </section>
+
+    <div class="grid-2">
+      <div>
+        <form class="panel" id="profileForm">
+          <h2>Profile</h2>
+          <p class="sub">Your display name shows on the leaderboard and in the top bar. It is the same on L-Lawliet and JurisCards.</p>
+          <div class="field">
+            <label for="displayName">Display name</label>
+            <input id="displayName" maxlength="100" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="bio">Short bio</label>
+            <textarea id="bio" rows="3" maxlength="300"></textarea>
+            <p class="hint">Shown on your profile. Up to 300 characters.</p>
+          </div>
+          <button class="btn btn-gold" type="submit" id="profileBtn">Save profile</button>
+          <p class="msg" id="profileMsg" role="status"></p>
+        </form>
+
+        <form class="panel" id="gameForm">
+          <h2>Game</h2>
+          <p class="sub">How the Arena behaves for you.</p>
+          <label class="check"><input type="checkbox" id="confirmAbandon"><span>Ask before I leave a trial that is in progress</span></label>
+          <label class="check"><input type="checkbox" id="reduceMotion"><span>Turn off animations</span></label>
+          <label class="check"><input type="checkbox" id="hideWon"><span>Hide cases I have already won on the docket</span></label>
+          <button class="btn btn-gold" type="submit" id="gameBtn">Save game settings</button>
+          <p class="msg" id="gameMsg" role="status"></p>
+        </form>
+
+        <section class="panel">
+          <h2>Start over</h2>
+          <p class="sub">Deletes every trial you have saved, which resets your rank and removes you from the leaderboard. Your account stays.</p>
+          <button class="btn btn-ghost" id="resetBtn" type="button">Clear my trial history</button>
+          <p class="msg" id="resetMsg" role="status"></p>
+        </section>
+      </div>
+
+      <div>
+        <form class="panel" id="passwordForm">
+          <h2>Password</h2>
+          <p class="sub" id="passwordSub">Changing it signs you out on every other device.</p>
+          <input type="text" id="pwUsername" autocomplete="username" hidden>
+          <div id="passwordFields">
+            <div class="field"><label for="currentPassword">Current password</label><input id="currentPassword" type="password" autocomplete="current-password" required></div>
+            <div class="field">
+              <label for="newPassword">New password</label>
+              <input id="newPassword" type="password" autocomplete="new-password" minlength="8" maxlength="72" required>
+              <p class="hint">At least 8 characters, with a letter and a number.</p>
+            </div>
+            <div class="field"><label for="newPassword2">Confirm new password</label><input id="newPassword2" type="password" autocomplete="new-password" required></div>
+            <button class="btn btn-gold" type="submit" id="passwordBtn">Change password</button>
+          </div>
+          <p class="msg" id="passwordMsg" role="status"></p>
+        </form>
+
+        <section class="panel">
+          <h2>Sessions</h2>
+          <p class="sub">"Sign out everywhere" ends every session on every device, on all three sites.</p>
+          <div class="row">
+            <button class="btn btn-ghost" id="signOutBtn" type="button">Sign out</button>
+            <button class="btn btn-ghost" id="signOutAllBtn" type="button">Sign out everywhere</button>
+          </div>
+          <p class="msg" id="sessionMsg" role="status"></p>
+        </section>
+
+        <form class="panel danger" id="deleteForm">
+          <h2>Delete account</h2>
+          <p class="sub">Deletes your account on all three sites, with your saved trials. Notes you posted on L-Lawliet stay as "Deleted user". This cannot be undone.</p>
+          <div class="field">
+            <label for="deleteConfirm">Type your username (<strong id="deleteUsername"></strong>) to confirm</label>
+            <input id="deleteConfirm" autocomplete="off" required>
+          </div>
+          <div class="field" id="deletePasswordField">
+            <label for="deletePassword">Password</label>
+            <input id="deletePassword" type="password" autocomplete="current-password">
+          </div>
+          <button class="btn btn-danger" type="submit" id="deleteBtn">Delete my account</button>
+          <p class="msg" id="deleteMsg" role="status"></p>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">JurisCards Arena · Laws from the L-Lawliet database</footer>
+
+  <script src="js/session.js"></script>
+  <script>
+  (async function () {
+    const { requireLogin, getJson, api, errorMessage, saveSession, updateUser, signOut } = ArenaSession;
+    if (!requireLogin()) return;
+    const $ = (id) => document.getElementById(id);
+
+    function say(id, text, ok) { $(id).textContent = text; $(id).className = "msg " + (ok ? "ok" : "err"); }
+
+    async function submit(btn, msgId, path, options, onOk) {
+      btn.disabled = true;
+      $(msgId).textContent = "";
+      try {
+        const res = await api(path, options);
+        if (!res.ok) { say(msgId, await errorMessage(res), false); return; }
+        await onOk(res);
+      } catch (err) {
+        if (err.message !== "Login expired") say(msgId, "Could not reach the server. Please try again.", false);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    let me, prefs;
+    try {
+      [me, prefs] = await Promise.all([getJson("/me"), getJson("/arena/prefs")]);
+    } catch (err) {
+      $("accountLine").textContent = "";
+      $("loadError").textContent = err.message;
+      return;
+    }
+
+    $("accountLine").textContent = [`Signed in as @${me.username}`, me.email, me.role === "admin" && "admin"].filter(Boolean).join(" · ");
+    $("displayName").value = me.display_name || "";
+    $("bio").value = me.bio || "";
+    $("confirmAbandon").checked = prefs.confirm_abandon;
+    $("reduceMotion").checked = prefs.reduce_motion;
+    $("hideWon").checked = prefs.hide_won;
+    $("deleteUsername").textContent = me.username;
+    $("pwUsername").value = me.username;
+    if (!me.has_password) {
+      $("passwordSub").textContent = "This account signs in with Google, so it has no password to change.";
+      $("passwordFields").hidden = true;
+      $("deletePasswordField").hidden = true;
+    }
+
+    $("profileForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = $("displayName").value.trim();
+      if (!name) { say("profileMsg", "Display name cannot be empty.", false); return; }
+      submit($("profileBtn"), "profileMsg", "/me", { method: "PATCH", body: { display_name: name, bio: $("bio").value.trim() } },
+        async (res) => {
+          updateUser(await res.json());
+          say("profileMsg", "Profile saved.", true);
+          const label = document.querySelector(".menu-name");
+          if (label) label.textContent = name;
+        });
+    });
+
+    $("gameForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      submit($("gameBtn"), "gameMsg", "/arena/prefs", {
+        method: "PATCH",
+        body: { confirm_abandon: $("confirmAbandon").checked, reduce_motion: $("reduceMotion").checked, hide_won: $("hideWon").checked },
+      }, async () => say("gameMsg", "Game settings saved.", true));
+    });
+
+    $("resetBtn").addEventListener("click", () => {
+      if (!confirm("Delete all your saved trials? Your rank goes back to Law Student.")) return;
+      submit($("resetBtn"), "resetMsg", "/arena/results", { method: "DELETE" }, async (res) => {
+        const { cleared } = await res.json();
+        say("resetMsg", `Deleted ${cleared} trial${cleared === 1 ? "" : "s"}.`, true);
+      });
+    });
+
+    $("passwordForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      if ($("newPassword").value !== $("newPassword2").value) { say("passwordMsg", "The new passwords do not match.", false); return; }
+      submit($("passwordBtn"), "passwordMsg", "/me/password", {
+        method: "POST", body: { current_password: $("currentPassword").value, new_password: $("newPassword").value },
+      }, async (res) => {
+        saveSession(await res.json());
+        $("passwordForm").reset();
+        say("passwordMsg", "Password changed. Other devices have been signed out.", true);
+      });
+    });
+
+    $("signOutBtn").addEventListener("click", () => { signOut(); location.href = "index.html"; });
+    $("signOutAllBtn").addEventListener("click", () => {
+      if (!confirm("Sign out on every device, including this one?")) return;
+      submit($("signOutAllBtn"), "sessionMsg", "/auth/logout-all", { method: "POST" }, async () => { signOut(); location.href = "login.html"; });
+    });
+
+    $("deleteForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      if ($("deleteConfirm").value.trim().toLowerCase() !== me.username.toLowerCase()) { say("deleteMsg", "Type your username exactly to confirm.", false); return; }
+      if (!confirm("Delete your account for good? This cannot be undone.")) return;
+      const body = { confirm: $("deleteConfirm").value.trim() };
+      if (me.has_password) body.password = $("deletePassword").value;
+      submit($("deleteBtn"), "deleteMsg", "/me", { method: "DELETE", body }, async () => { signOut(); location.href = "index.html"; });
+    });
+  })();
+  </script>
+</body>
+</html>

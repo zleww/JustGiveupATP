@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in · JurisCards Arena</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/arena.css">
+  <style>
+    .auth-layout { display: grid; grid-template-columns: 1.1fr 1fr; gap: 28px; align-items: start; margin-top: 18px; }
+    .auth-side h1 { font-family: var(--font-display); font-size: clamp(1.6rem, 3vw, 2.2rem); margin-bottom: 10px; }
+    .auth-side p { color: var(--text-muted); margin-bottom: 18px; }
+    .or { display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 0.78rem; margin: 16px 0; }
+    .or::before, .or::after { content: ""; flex: 1; border-top: 1px solid var(--border-strong); }
+    .notice { background: rgba(200, 155, 83, 0.1); border: 1px solid rgba(200, 155, 83, 0.35); border-radius: var(--radius-sm); padding: 9px 12px; font-size: 0.88rem; margin-bottom: 14px; }
+    .guest-link { display: block; text-align: center; margin-top: 16px; color: var(--text-muted); font-size: 0.88rem; }
+    @media (max-width: 860px) { .auth-layout { grid-template-columns: 1fr; } .auth-side { order: 2; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="JurisCards Arena home">
+      <span class="brand-mark">J</span>
+      <span class="brand-name">JurisCards <span>Arena</span></span>
+    </a>
+    <div class="topbar-meta">
+      <nav class="topnav" aria-label="Site">
+        <a href="arena.html">Play</a>
+        <a href="leaderboard.html">Leaderboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="auth-layout">
+      <section class="auth-side">
+        <p class="eyebrow">Account</p>
+        <h1>Sign in to save your trials</h1>
+        <p>The Arena, JurisCards and L-Lawliet share one database, so an account from any of them works here.</p>
+        <table class="compare">
+          <thead><tr><th></th><th>Guest</th><th>Account</th></tr></thead>
+          <tbody>
+            <tr><td>Cases you can play</td><td>Tier 1</td><td>All 3 tiers</td></tr>
+            <tr><td>Laws in your card pool</td><td>10</td><td>All</td></tr>
+            <tr><td>Wins, rank and trial history</td><td>Lost on close</td><td>Saved</td></tr>
+            <tr><td>Leaderboard</td><td>View only</td><td>Listed</td></tr>
+            <tr><td>Game settings</td><td>No</td><td>Yes</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel">
+        <div id="notice" class="notice" hidden></div>
+        <div class="tabs" role="tablist">
+          <button id="tabLogin" role="tab" aria-selected="true" aria-controls="loginForm" type="button">Sign in</button>
+          <button id="tabSignup" role="tab" aria-selected="false" aria-controls="signupForm" type="button">Create account</button>
+        </div>
+
+        <form id="loginForm" novalidate>
+          <div class="field">
+            <label for="username">Username</label>
+            <input id="username" autocomplete="username" maxlength="50" required>
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <input id="password" type="password" autocomplete="current-password" maxlength="200" required>
+          </div>
+          <button class="btn btn-gold btn-wide" id="loginBtn" type="submit">Sign in</button>
+          <p class="msg err" id="loginError" role="alert"></p>
+        </form>
+
+        <form id="signupForm" novalidate hidden>
+          <div class="field">
+            <label for="newUsername">Username</label>
+            <input id="newUsername" autocomplete="username" minlength="3" maxlength="30" pattern="[A-Za-z0-9_.]+" required>
+            <p class="hint">3 to 30 letters, numbers, dots or underscores.</p>
+          </div>
+          <div class="field">
+            <label for="displayName">Display name (optional)</label>
+            <input id="displayName" autocomplete="name" maxlength="100">
+            <p class="hint">Shown on the leaderboard.</p>
+          </div>
+          <div class="field">
+            <label for="newPassword">Password</label>
+            <input id="newPassword" type="password" autocomplete="new-password" minlength="8" maxlength="72" required>
+            <p class="hint">At least 8 characters, with a letter and a number.</p>
+          </div>
+          <div class="field">
+            <label for="newPassword2">Confirm password</label>
+            <input id="newPassword2" type="password" autocomplete="new-password" required>
+          </div>
+          <button class="btn btn-gold btn-wide" id="signupBtn" type="submit">Create account</button>
+          <p class="msg err" id="signupError" role="alert"></p>
+        </form>
+
+        <div id="googleBox" hidden>
+          <div class="or">or</div>
+          <div id="googleBtn" style="display:flex;justify-content:center;min-height:44px"></div>
+          <p class="msg err" id="googleError" role="alert" style="text-align:center"></p>
+        </div>
+
+        <a class="guest-link" id="guestLink" href="arena.html">Play as a guest</a>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">JurisCards Arena · Laws from the L-Lawliet database</footer>
+
+  <script src="js/session.js"></script>
+  <script>
+  (function () {
+    const { API, saveSession, getAuth, errorMessage } = ArenaSession;
+    const $ = (id) => document.getElementById(id);
+    const params = new URLSearchParams(location.search);
+
+    // Only return to one of this site's own pages.
+    const nextParam = params.get("next") || "";
+    const next = /^[a-z-]+\.html(\?[^#]*)?$/i.test(nextParam) && !nextParam.startsWith("login.html") ? nextParam : "arena.html";
+    $("guestLink").href = next;
+
+    if (getAuth() && !params.get("expired")) { location.href = next; return; }
+    if (params.get("expired")) {
+      $("notice").textContent = "Your session ended. Please sign in again.";
+      $("notice").hidden = false;
+    }
+
+    function show(tab) {
+      const login = tab === "login";
+      $("tabLogin").setAttribute("aria-selected", String(login));
+      $("tabSignup").setAttribute("aria-selected", String(!login));
+      $("loginForm").hidden = !login;
+      $("signupForm").hidden = login;
+      (login ? $("username") : $("newUsername")).focus();
+    }
+    $("tabLogin").addEventListener("click", () => show("login"));
+    $("tabSignup").addEventListener("click", () => show("signup"));
+    if (params.get("signup")) show("signup");
+
+    async function send(path, body, btn, box) {
+      box.textContent = "";
+      btn.disabled = true;
+      try {
+        const res = await fetch(API + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        if (!res.ok) { box.textContent = await errorMessage(res); return; }
+        saveSession(await res.json());
+        location.href = next;
+      } catch (e) {
+        box.textContent = "Could not reach the server. Please try again.";
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    $("loginForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const username = $("username").value.trim();
+      const password = $("password").value;
+      if (!username || !password) { $("loginError").textContent = "Enter your username and password."; return; }
+      send("/auth/login", { username, password }, $("loginBtn"), $("loginError"));
+    });
+
+    $("signupForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const box = $("signupError");
+      const username = $("newUsername").value.trim();
+      const password = $("newPassword").value;
+      if (!/^[A-Za-z0-9_.]{3,30}$/.test(username)) { box.textContent = "Username must be 3 to 30 letters, numbers, dots or underscores."; return; }
+      if (password !== $("newPassword2").value) { box.textContent = "The passwords do not match."; return; }
+      const body = { username, password };
+      const name = $("displayName").value.trim();
+      if (name) body.display_name = name;
+      send("/auth/register", body, $("signupBtn"), box);
+    });
+
+    // Google sign-in, shown only when the API has a Google client ID.
+    (async function () {
+      let clientId = null;
+      try {
+        const res = await fetch(API + "/auth/config");
+        if (res.ok) clientId = (await res.json()).google_client_id;
+      } catch (e) { /* stays hidden */ }
+      if (!clientId) return;
+      const script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.onload = () => {
+        google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (r) => send("/auth/google", { credential: r.credential }, { disabled: false }, $("googleError")),
+        });
+        google.accounts.id.renderButton($("googleBtn"), { theme: "filled_black", size: "large", text: "continue_with", width: 300 });
+        $("googleBox").hidden = false;
+      };
+      document.head.appendChild(script);
+    })();
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin · JurisCards Arena</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/arena.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="JurisCards Arena home">
+      <span class="brand-mark">J</span>
+      <span class="brand-name">JurisCards <span>Arena</span></span>
+    </a>
+    <div class="topbar-meta">
+      <nav class="topnav" aria-label="Site">
+        <a href="arena.html">Play</a>
+        <a href="leaderboard.html">Leaderboard</a>
+      </nav>
+      <div class="account" data-account></div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="page-head">
+      <p class="eyebrow">Admin</p>
+      <h1 class="section-title">Admin</h1>
+      <p>Game activity across every account. Accounts and laws are shared with L-Lawliet and JurisCards.</p>
+      <p class="msg err" id="loadError" role="alert"></p>
+    </section>
+
+    <section class="stats-grid">
+      <div class="stat-box"><div class="label">Players</div><div class="value" id="stPlayers">-</div><div class="note" id="stAccounts"></div></div>
+      <div class="stat-box"><div class="label">Trials</div><div class="value" id="stTrials">-</div><div class="note" id="stWeek"></div></div>
+      <div class="stat-box"><div class="label">Win rate</div><div class="value" id="stRate">-</div><div class="note" id="stWins"></div></div>
+      <div class="stat-box"><div class="label">Laws</div><div class="value" id="stLaws">-</div><div class="note">In the shared database</div></div>
+    </section>
+
+    <section class="panel">
+      <h2>Cases</h2>
+      <p class="sub">How often each case is won. A low win rate can mean a case is too hard or its facts are unclear.</p>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Case</th><th>Tier</th><th>Players</th><th>Trials</th><th>Wins</th><th>Win rate</th><th>Avg turns to win</th></tr></thead>
+          <tbody id="caseRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Players</h2>
+      <p class="sub">Every account, most recently active first. No emails or passwords are sent to this page.</p>
+      <div class="row" style="margin-bottom:12px">
+        <div class="field" style="flex:1;min-width:200px;margin:0"><input id="search" placeholder="Search by username or name" aria-label="Search players"></div>
+        <label class="check" style="margin:0"><input type="checkbox" id="activeOnly"><span>Only players with trials</span></label>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Player</th><th>Role</th><th>Joined</th><th>Cases won</th><th>Wins</th><th>Trials</th><th>Last played</th></tr></thead>
+          <tbody id="playerRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Laws and accounts</h2>
+      <p class="sub">Laws are added and edited, and accounts are unlocked or removed, on the L-Lawliet admin page with the same admin account.</p>
+      <a class="btn btn-ghost" id="lawlietAdmin" href="https://l-lawliet-three.vercel.app/admin.html" target="_blank" rel="noopener">Open L-Lawliet admin</a>
+    </section>
+  </main>
+
+  <footer class="footer">JurisCards Arena · Laws from the L-Lawliet database</footer>
+
+  <script src="js/session.js"></script>
+  <script src="data/cases.js"></script>
+  <script>
+  (async function () {
+    const { requireLogin, isAdmin, getJson, esc, timeAgo, API } = ArenaSession;
+    if (!requireLogin()) return;
+    // Hiding the page is only tidiness: the API answers 403 to anyone who is not an admin.
+    if (!isAdmin()) { location.href = "profile.html"; return; }
+    const $ = (id) => document.getElementById(id);
+    if (API.startsWith("http://127.0.0.1")) $("lawlietAdmin").href = "http://127.0.0.1:8000/admin.html";
+
+    let data, stats;
+    try {
+      [data, stats] = await Promise.all([getJson("/admin/arena"), getJson("/stats")]);
+    } catch (err) {
+      $("loadError").textContent = err.message;
+      return;
+    }
+    const pct = (a, b) => (b ? `${Math.round(a / b * 100)}%` : "-");
+    const o = data.overview;
+    $("stPlayers").textContent = o.players;
+    $("stAccounts").textContent = `of ${data.players.length} accounts`;
+    $("stTrials").textContent = o.trials;
+    $("stWeek").textContent = `${o.trials_this_week} in the last 7 days`;
+    $("stRate").textContent = pct(o.wins, o.trials);
+    $("stWins").textContent = `${o.wins} wins`;
+    $("stLaws").textContent = stats.total;
+
+    const played = new Map(data.cases.map((c) => [c.case_id, c]));
+    $("caseRows").innerHTML = JURIS_CASES.map((c) => {
+      const s = played.get(c.id) || { players: 0, trials: 0, wins: 0, avg_turns_to_win: null };
+      return `<tr><td>${esc(c.name)}</td><td><span class="tier-badge t${c.tier}">T${c.tier}</span></td>
+        <td>${s.players}</td><td>${s.trials}</td><td>${s.wins}</td><td>${pct(s.wins, s.trials)}</td>
+        <td>${s.avg_turns_to_win == null ? "-" : esc(s.avg_turns_to_win)}</td></tr>`;
+    }).join("");
+
+    function renderPlayers() {
+      const q = $("search").value.trim().toLowerCase();
+      const rows = data.players.filter((p) =>
+        (!$("activeOnly").checked || p.trials > 0) &&
+        (!q || p.username.toLowerCase().includes(q) || (p.display_name || "").toLowerCase().includes(q)));
+      $("playerRows").innerHTML = rows.length ? rows.map((p) => `
+        <tr>
+          <td><strong>${esc(p.display_name || p.username)}</strong><br><span class="muted">@${esc(p.username)}</span></td>
+          <td>${p.role === "admin" ? '<span class="tag won">Admin</span>' : '<span class="tag">Player</span>'}</td>
+          <td>${esc(new Date(p.created_at).toLocaleDateString("en-PH"))}</td>
+          <td>${p.cases_won}</td><td>${p.wins}</td><td>${p.trials}</td>
+          <td>${p.last_played ? esc(timeAgo(p.last_played)) : '<span class="muted">Never</span>'}</td>
+        </tr>`).join("") : '<tr><td colspan="7" class="empty">No players match.</td></tr>';
+    }
+    $("search").addEventListener("input", renderPlayers);
+    $("activeOnly").addEventListener("change", renderPlayers);
+    renderPlayers();
+  })();
+  </script>
+</body>
+</html>

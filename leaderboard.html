@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaderboard · JurisCards Arena</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/arena.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="JurisCards Arena home">
+      <span class="brand-mark">J</span>
+      <span class="brand-name">JurisCards <span>Arena</span></span>
+    </a>
+    <div class="topbar-meta">
+      <nav class="topnav" aria-label="Site">
+        <a href="arena.html">Play</a>
+        <a href="leaderboard.html" aria-current="page">Leaderboard</a>
+      </nav>
+      <div class="account" data-account></div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="page-head">
+      <p class="eyebrow">Leaderboard</p>
+      <h1 class="section-title">Top players</h1>
+      <p>Ranked by the number of different cases won, then by total wins. Only signed-in players are listed.</p>
+    </section>
+    <div id="guestNote"></div>
+
+    <section class="panel">
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>#</th><th>Player</th><th>Rank</th><th>Cases won</th><th>Wins</th><th>Trials</th><th>Last played</th></tr></thead>
+          <tbody id="rows"><tr><td colspan="7" class="empty">Loading</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">JurisCards Arena · Laws from the L-Lawliet database</footer>
+
+  <script src="js/session.js"></script>
+  <script>
+  (async function () {
+    const { getJson, getAuth, esc, timeAgo, RANKS, rankIndex, guestNotice } = ArenaSession;
+    const auth = getAuth();
+    document.getElementById("guestNote").innerHTML = guestNotice("Guests can view the leaderboard. Sign in to save your wins and get listed.");
+    const rows = document.getElementById("rows");
+    try {
+      const { players } = await getJson("/arena/leaderboard?limit=50");
+      rows.innerHTML = players.length ? players.map((p, i) => `
+        <tr class="${auth && p.user_id === auth.id ? "me" : ""}">
+          <td>${i + 1}</td>
+          <td><strong>${esc(p.name)}</strong> <span class="muted">@${esc(p.username)}</span></td>
+          <td>${esc(RANKS[rankIndex(p.cases_won)].name)}</td>
+          <td>${p.cases_won}</td><td>${p.wins}</td><td>${p.trials}</td>
+          <td>${esc(timeAgo(p.last_played))}</td>
+        </tr>`).join("") : '<tr><td colspan="7" class="empty">No one has won a case yet.</td></tr>';
+    } catch (err) {
+      rows.innerHTML = `<tr><td colspan="7" class="empty">Could not load the leaderboard. ${esc(err.message)}</td></tr>`;
+    }
+  })();
+  </script>
+</body>
+</html>

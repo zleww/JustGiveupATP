@@ -18,9 +18,14 @@
     </a>
     <div class="topbar-meta">
       <span class="pill hide-sm" id="codexPill" title="Where statute data is coming from">
-        <span class="dot" id="codexDot"></span><span id="codexLabel">Loading codex…</span>
+        <span class="dot" id="codexDot"></span><span id="codexLabel">Loading laws</span>
       </span>
-      <span class="pill">Rank <strong id="rankPill">—</strong></span>
+      <span class="pill">Rank <strong id="rankPill">-</strong></span>
+      <nav class="topnav" aria-label="Site">
+        <a href="arena.html" aria-current="page">Play</a>
+        <a href="leaderboard.html">Leaderboard</a>
+      </nav>
+      <div class="account" data-account></div>
     </div>
   </header>
 
@@ -29,6 +34,7 @@
     <p class="eyebrow">Trial Docket</p>
     <h1 class="section-title">Choose your case</h1>
     <p class="section-sub">Each case is a legal problem with essential elements. Draft Republic Acts, invoke the right statute for each element, and win the case before your Juris Power runs out.</p>
+    <div id="guestNote"></div>
 
     <div class="docket-layout">
       <div id="docketList" aria-live="polite"></div>
@@ -39,6 +45,7 @@
           <div class="rank-name" id="rankName">Law Student</div>
           <div class="rank-progress"><div id="rankBar" style="width:0%"></div></div>
           <div class="muted" id="rankNext">Win cases to advance.</div>
+          <div class="muted" id="rankSaved" style="margin-top:6px"></div>
         </div>
         <div class="panel">
           <h3>PARTY SYNERGIES</h3>
@@ -50,12 +57,12 @@
         </div>
       </aside>
     </div>
-    <p class="disclaimer">Educational game. Not legal advice. Statute data from the L-Lawliet Legal Codex; always verify against the Official Gazette.</p>
+    <p class="disclaimer">Educational game. Not legal advice. Laws come from the L-Lawliet database. Always check the Official Gazette for the full text.</p>
   </main>
 
   <!-- ======================= ENCOUNTER ======================= -->
   <main class="wrap hidden" id="encounterView">
-    <button class="btn btn-ghost btn-sm" id="backToDocket" type="button">← Docket</button>
+    <button class="btn btn-ghost btn-sm" id="backToDocket" type="button">Back to docket</button>
 
     <div class="arena-grid" style="margin-top:16px">
       <!-- Threat -->
@@ -83,8 +90,8 @@
         <div class="bar jp" role="progressbar" aria-label="Juris Power" id="jpBarWrap"><div id="jpBar"></div></div>
         <div class="stat-row">
           <span class="pill">Turn <strong id="turnText">0</strong></span>
-          <span class="pill" title="The threat strikes every few turns">⏳ Strike in <strong id="clockText">3</strong></span>
-          <span class="pill hidden" id="shieldPill">🛡 <strong>Shield up</strong></span>
+          <span class="pill" title="The threat strikes every few turns">Strike in <strong id="clockText">3</strong></span>
+          <span class="pill hidden" id="shieldPill"><strong>Shield up</strong></span>
         </div>
         <div class="stat-row" id="synergyChips"></div>
         <p class="eyebrow" style="margin:6px 0 8px">Court Record</p>
@@ -116,7 +123,7 @@
   <div class="modal hidden" id="searchModal" role="dialog" aria-modal="true" aria-labelledby="searchTitle">
     <div class="modal-box">
       <button class="modal-close" type="button" data-close aria-label="Close">&times;</button>
-      <h2 id="searchTitle">🔎 Search Precedent</h2>
+      <h2 id="searchTitle">Search Precedent</h2>
       <p class="muted">Query the Legal Codex and draft one Republic Act into your party.</p>
       <form class="search-row" id="searchForm">
         <label class="sr-only" for="searchInput">Search the codex</label>
@@ -134,8 +141,7 @@
 
   <div class="toast hidden" id="toast" role="status"></div>
 
-  <!-- Codex cache must load first: offline fallback for JurisAPI -->
-  <script src="data/codex-cache.js"></script>
+  <script src="js/session.js"></script>
   <script src="data/cases.js"></script>
   <script src="js/app.js"></script>
   <script src="js/engine.js"></script>
