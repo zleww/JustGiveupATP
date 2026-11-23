@@ -176,12 +176,52 @@
     slot.querySelector(".signout").addEventListener("click", () => { signOut(); global.location.href = "index.html"; });
   }
 
+  // ---------------------------------------------------------------
+  // Phone menu: Play / Leaderboard move into a panel behind a menu button.
+  // ---------------------------------------------------------------
+  function renderMobileNav() {
+    const bar = document.querySelector(".topbar");
+    const nav = bar && bar.querySelector(".topnav");
+    if (!nav || bar.querySelector(".burger")) return;
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "burger";
+    btn.setAttribute("aria-label", "Open menu");
+    btn.setAttribute("aria-expanded", "false");
+    btn.innerHTML = "<span></span><span></span><span></span>";
+
+    const panel = document.createElement("nav");
+    panel.className = "mobile-nav";
+    panel.setAttribute("aria-label", "Pages");
+    panel.hidden = true;
+    const here = global.location.pathname.split("/").pop() || "index.html";
+    const links = [["index.html", "Home"], ...[...nav.querySelectorAll("a")].map((a) => [a.getAttribute("href"), a.textContent.trim()])];
+    panel.innerHTML = links.map(([href, label]) =>
+      `<a href="${esc(href)}"${href === here ? ' aria-current="page"' : ""}>${esc(label)}</a>`).join("");
+
+    bar.querySelector(".topbar-meta").appendChild(btn);
+    bar.appendChild(panel);
+
+    const set = (open) => {
+      panel.hidden = !open;
+      btn.setAttribute("aria-expanded", String(open));
+      btn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+      btn.classList.toggle("open", open);
+    };
+    btn.addEventListener("click", (e) => { e.stopPropagation(); set(panel.hidden); });
+    document.addEventListener("click", (e) => { if (!bar.contains(e.target)) set(false); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") set(false); });
+    global.addEventListener("resize", () => { if (global.innerWidth > 620) set(false); });
+  }
+
   global.ArenaSession = {
     API, GUEST_TIERS, RANKS,
     getAuth, saveSession, updateUser, signOut, isAdmin, displayName, requireLogin,
     api, getJson, errorMessage, guestNotice, esc, timeAgo, rankIndex,
   };
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", renderAccount);
-  else renderAccount();
+  const start = () => { renderAccount(); renderMobileNav(); };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
+  else start();
 })(window);
