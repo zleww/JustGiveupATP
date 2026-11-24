@@ -74,6 +74,14 @@
       </div>
 
       <div>
+        <form class="panel" id="emailForm" hidden>
+          <h2>Recovery email</h2>
+          <p class="sub" id="emailSub">Add an email so you can reset your password if you forget it. We send a link to confirm it first.</p>
+          <div class="field"><label for="recoveryEmail">Email</label><input id="recoveryEmail" type="email" autocomplete="email" maxlength="254" required></div>
+          <button class="btn btn-gold" type="submit" id="emailBtn">Send confirmation link</button>
+          <p class="msg" id="emailMsg" role="status"></p>
+        </form>
+
         <form class="panel" id="passwordForm">
           <h2>Password</h2>
           <p class="sub" id="passwordSub">Changing it signs you out on every other device.</p>
@@ -161,6 +169,10 @@
     $("hideWon").checked = prefs.hide_won;
     $("deleteUsername").textContent = me.username;
     $("pwUsername").value = me.username;
+    if (!me.google_linked) {
+      $("emailForm").hidden = false;
+      if (me.email) $("emailSub").textContent = `Confirmed: ${me.email}. Password reset links go here. Enter a new address to change it.`;
+    }
     if (!me.has_password) {
       $("passwordSub").textContent = "This account signs in with Google, so it has no password to change.";
       $("passwordFields").hidden = true;
@@ -193,6 +205,17 @@
       submit($("resetBtn"), "resetMsg", "/arena/results", { method: "DELETE" }, async (res) => {
         const { cleared } = await res.json();
         say("resetMsg", `Deleted ${cleared} trial${cleared === 1 ? "" : "s"}.`, true);
+      });
+    });
+
+    // Recovery email: saved on the account once the emailed link is opened.
+    $("emailForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = $("recoveryEmail").value.trim();
+      if (!email) { say("emailMsg", "Enter an email address.", false); return; }
+      submit($("emailBtn"), "emailMsg", "/me/email", { method: "POST", body: { email } }, async (res) => {
+        $("emailForm").reset();
+        say("emailMsg", (await res.json()).detail, true);
       });
     });
 

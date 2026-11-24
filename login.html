@@ -74,6 +74,21 @@
           </div>
           <button class="btn btn-gold btn-wide" id="loginBtn" type="submit">Sign in</button>
           <p class="msg err" id="loginError" role="alert"></p>
+          <a class="guest-link" id="forgotLink" href="#forgot" style="margin-top: 10px;">Forgot password?</a>
+        </form>
+
+        <!-- Forgot password: emails a one-time link to the account's confirmed email -->
+        <form id="forgotForm" novalidate hidden>
+          <h2 style="font-family: var(--font-display); font-size: 1.3rem; margin-bottom: 6px;">Reset your password</h2>
+          <p class="hint" style="margin-bottom: 14px;">Enter your username or the email you confirmed in Settings. We will email you a link that works for 30 minutes.</p>
+          <div class="field">
+            <label for="forgotLogin">Username or email</label>
+            <input id="forgotLogin" autocomplete="username" maxlength="254" required>
+          </div>
+          <button class="btn btn-gold btn-wide" id="forgotBtn" type="submit">Send reset link</button>
+          <p class="msg" id="forgotMsg" role="status"></p>
+          <p class="hint">No email on your account? Ask an admin to help you get back in.</p>
+          <a class="guest-link" id="backToLogin" href="#login">Back to sign in</a>
         </form>
 
         <form id="signupForm" novalidate hidden>
@@ -86,6 +101,11 @@
             <label for="displayName">Display name (optional)</label>
             <input id="displayName" autocomplete="name" maxlength="100">
             <p class="hint">Shown on the leaderboard.</p>
+          </div>
+          <div class="field">
+            <label for="newEmail">Email (optional, for password reset)</label>
+            <input id="newEmail" type="email" autocomplete="email" maxlength="254">
+            <p class="hint">We send a link to confirm it. Only used to reset your password.</p>
           </div>
           <div class="field">
             <label for="newPassword">Password</label>
@@ -139,6 +159,40 @@
       $("signupForm").hidden = login;
       (login ? $("username") : $("newUsername")).focus();
     }
+    // Forgot password
+    function showForgot(open) {
+      $("forgotForm").hidden = !open;
+      document.querySelector(".tabs").style.display = open ? "none" : "";
+      $("loginForm").hidden = open;
+      $("signupForm").hidden = true;
+      if (open) { $("forgotLogin").value = $("username").value.trim(); $("forgotLogin").focus(); }
+      else show("login");
+    }
+    $("forgotLink").addEventListener("click", (e) => { e.preventDefault(); showForgot(true); });
+    $("backToLogin").addEventListener("click", (e) => { e.preventDefault(); showForgot(false); });
+    if (location.hash === "#forgot") showForgot(true);
+
+    $("forgotForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const msg = $("forgotMsg");
+      const login = $("forgotLogin").value.trim();
+      if (!login) { msg.className = "msg err"; msg.textContent = "Enter your username or email."; return; }
+      $("forgotBtn").disabled = true;
+      msg.textContent = "";
+      try {
+        const res = await fetch(API + "/auth/forgot-password", {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ login }),
+        });
+        msg.className = "msg " + (res.ok ? "ok" : "err");
+        msg.textContent = res.ok ? (await res.json()).detail : await errorMessage(res);
+      } catch (err) {
+        msg.className = "msg err";
+        msg.textContent = "Could not reach the server. Please try again.";
+      } finally {
+        $("forgotBtn").disabled = false;
+      }
+    });
+
     $("tabLogin").addEventListener("click", () => show("login"));
     $("tabSignup").addEventListener("click", () => show("signup"));
     if (params.get("signup")) show("signup");
@@ -149,8 +203,20 @@
       try {
         const res = await fetch(API + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
         if (!res.ok) { box.textContent = await errorMessage(res); return; }
-        saveSession(await res.json());
-        location.href = next;
+        const data = await res.json();
+        saveSession(data);
+        if (!data.email_status) { location.href = next; return; }
+        // New account with an email: say whether the confirmation link went out, then continue.
+        box.className = "msg ok";
+        box.textContent = {
+          sent: "Account created. We emailed you a link to confirm your address.",
+          taken: "Account created. That email is already used by another account, so it was not added.",
+          failed: "Account created, but the confirmation email could not be sent. You can add it again in Settings.",
+        }[data.email_status] + " ";
+        const go = document.createElement("a");
+        go.href = next; go.textContent = "Continue";
+        box.append(go);
+        go.focus();
       } catch (e) {
         box.textContent = "Could not reach the server. Please try again.";
       } finally {
@@ -176,6 +242,8 @@
       const body = { username, password };
       const name = $("displayName").value.trim();
       if (name) body.display_name = name;
+      const email = $("newEmail").value.trim();
+      if (email) body.email = email;
       send("/auth/register", body, $("signupBtn"), box);
     });
 
