@@ -60,18 +60,18 @@ export default function Showcase() {
                 aria-controls={`panel-${i}`}
                 tabIndex={active === i ? 0 : -1}
                 onClick={() => select(i)}
-                className={`relative isolate whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors md:px-5 ${active === i ? "text-white" : "text-muted hover:text-ink"}`}
+                className={`relative isolate whitespace-nowrap rounded-full px-3 py-2 text-[13px] font-medium transition-colors sm:px-4 sm:text-sm md:px-5 ${active === i ? "text-on-accent" : "text-muted hover:text-ink"}`}
               >
                 {t.label}
-                {i === 0 && <span ref={indicator} className="absolute inset-0 -z-10 rounded-full bg-crimson shadow-[0_8px_30px_-8px_rgb(220_20_60/0.8)]" aria-hidden="true" />}
+                {i === 0 && <span ref={indicator} className="absolute inset-0 -z-10 rounded-full bg-accent shadow-[0_8px_30px_-8px_color-mix(in_srgb,var(--color-accent)_80%,transparent)]" aria-hidden="true" />}
               </button>
             ))}
           </div>
         </div>
 
         <div data-reveal className="relative">
-          <div className="glow-navy pointer-events-none absolute -inset-x-10 -top-10 bottom-0 -z-10 opacity-50 blur-3xl" aria-hidden="true" />
-          <div className="grid">
+          <div className="glow-accent2 pointer-events-none absolute -inset-x-10 -top-10 bottom-0 -z-10 opacity-50 blur-3xl" aria-hidden="true" />
+          <div className="grid grid-cols-[minmax(0,1fr)]">
             {showcase.tabs.map((t, i) => (
               <div
                 key={t.label}

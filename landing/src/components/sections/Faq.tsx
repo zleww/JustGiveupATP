@@ -45,7 +45,7 @@ export default function Faq() {
                   aria-expanded={open === i}
                   aria-controls={`faq-a-${i}`}
                   onClick={() => toggle(i)}
-                  className="flex w-full items-center justify-between gap-6 py-6 text-left font-display text-lg font-medium tracking-tight transition-colors hover:text-crimson-ink md:text-xl"
+                  className="flex w-full items-center justify-between gap-6 py-6 text-left font-display text-lg font-medium tracking-tight transition-colors hover:text-accent-ink md:text-xl"
                 >
                   {item.q}
                   <span data-icon className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-line-strong text-muted" aria-hidden="true">

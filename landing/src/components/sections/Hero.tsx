@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import { gsap, MQ, SplitText, useGSAP } from "../../lib/gsap";
+import { theme } from "../../theme";
 import ShinyText from "../reactbits/ShinyText";
 import GradientText from "../reactbits/GradientText";
 import Magnet from "../reactbits/Magnet";
@@ -9,7 +10,7 @@ import DeferredAurora from "../ui/DeferredAurora";
 import { site } from "../../content";
 
 
-const AURORA_STOPS = ["#1E3A8A", "#DC143C", "#1E3A8A"];
+const AURORA_STOPS = theme.aurora;
 
 export default function Hero() {
   const scope = useRef<HTMLElement>(null);
@@ -51,23 +52,23 @@ export default function Hero() {
     <section ref={scope} className="relative isolate overflow-hidden pt-32 md:pt-40" aria-labelledby="hero-title">
       {/* Background: Aurora in the accent colours, with a static gradient under it as the fallback */}
       <div className="absolute inset-x-0 top-0 -z-10 h-[820px]" aria-hidden="true">
-        <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_0%,rgb(30_58_138/0.45),transparent_70%),radial-gradient(40%_40%_at_70%_10%,rgb(220_20_60/0.25),transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_0%,color-mix(in_srgb,var(--color-accent2)_45%,transparent),transparent_70%),radial-gradient(40%_40%_at_70%_10%,color-mix(in_srgb,var(--color-accent)_25%,transparent),transparent_70%)]" />
         <DeferredAurora className="absolute inset-0 opacity-55" colorStops={AURORA_STOPS} amplitude={1.1} blend={0.55} speed={0.6} mouseInteraction={false} intro />
         <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-b from-transparent to-bg" />
       </div>
 
       <div className="container-page flex flex-col items-center text-center">
         <p data-hero-after className="glass mb-7 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm">
-          <span className="h-1.5 w-1.5 rounded-full bg-crimson shadow-[0_0_12px_2px_rgb(220_20_60/0.8)]" aria-hidden="true" />
-          <ShinyText text={site.hero.eyebrow} color="#c9c9d4" shineColor="#ffffff" speed={3} />
+          <span className="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_12px_2px_color-mix(in_srgb,var(--color-accent)_80%,transparent)]" aria-hidden="true" />
+          <ShinyText text={site.hero.eyebrow} color={theme.shiny} shineColor={theme.shine} speed={3} />
         </p>
 
-        <h1 id="hero-title" aria-label={fullHeadline} className="hero-title max-w-5xl text-[clamp(2.75rem,8vw,6rem)] font-semibold leading-[0.98] tracking-[-0.045em]">
+        <h1 id="hero-title" aria-label={fullHeadline} className="hero-title max-w-5xl text-[clamp(2.75rem,8vw,6rem)] font-semibold leading-[0.98] tracking-display">
           <span aria-hidden="true">
             <span data-split>{headline.before} </span>
             <span className="inline-block overflow-hidden pb-[0.08em] align-bottom">
               <span data-accent-inner className="inline-block">
-                <GradientText colors={["#F26B84", "#8AA4FF", "#F26B84"]} animationSpeed={6} glow={0.4}>
+                <GradientText colors={theme.gradient} animationSpeed={6} glow={0.4}>
                   {headline.accent}
                 </GradientText>
               </span>
@@ -90,7 +91,7 @@ export default function Hero() {
       </div>
 
       <div className="container-page relative mt-16 md:mt-24 [perspective:1600px]">
-        <div className="glow-crimson pointer-events-none absolute -top-10 left-1/2 -z-10 h-[420px] w-[80%] -translate-x-1/2 opacity-60 blur-2xl" aria-hidden="true" />
+        <div className="glow-accent pointer-events-none absolute -top-10 left-1/2 -z-10 h-[420px] w-[80%] -translate-x-1/2 opacity-60 blur-2xl" aria-hidden="true" />
         <div data-hero-shot className="will-change-transform">
           <BrowserFrame shot={site.hero.shot} eager />
         </div>

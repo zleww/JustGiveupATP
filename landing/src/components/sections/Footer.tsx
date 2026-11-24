@@ -32,7 +32,7 @@ export default function Footer() {
           <ul className="mt-4 space-y-3 text-sm">
             {footer.sisters.map((s) => (
               <li key={s.href}>
-                <a href={s.href} className="text-ink transition-colors hover:text-crimson-ink">{s.label}</a>
+                <a href={s.href} className="text-ink transition-colors hover:text-accent-ink">{s.label}</a>
                 <span className="block text-faint">{s.note}</span>
               </li>
             ))}

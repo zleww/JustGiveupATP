@@ -112,7 +112,7 @@ export const site: SiteContent = {
     { q: "What can I play without an account?", a: "Guests play Tier 1 cases with a pool of 10 laws and can view the leaderboard; nothing is saved. A free account unlocks all 13 cases in 3 tiers, every law in your card pool, saved wins, rank and trial history, a spot on the leaderboard, and game settings." },
     { q: "Is this legal advice?", a: "No. The cases are a study game. The laws come from the L-Lawliet database, where each one links to its full text in the Official Gazette." },
     { q: "Does my account work on L-Lawliet and JurisCards?", a: "Yes. The three sites share one database, so the same username and password, or Google sign-in, works on each of them." },
-    { q: "I forgot my password. What now?", a: "Use \"Forgot password?\" on the sign-in page. If you confirmed an email in Settings, we send a reset link that works once, for 30 minutes. If you did not, ask an admin to help you back in." },
+    { q: "I forgot my password. What now?", a: "Use \"Forgot password?\" on the sign-in page. We email a reset link to the address on your account; it works once, for 30 minutes." },
   ],
 
   finalCta: {

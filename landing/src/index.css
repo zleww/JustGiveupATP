@@ -1,22 +1,9 @@
 @import "tailwindcss";
 
+/* Colours and fonts come from theme.css, one per site, matched to that site's palette */
+@import "./theme.css";
+
 @theme {
-  --color-bg: #0a0a0f;
-  --color-surface: #12121a;
-  --color-surface-2: #181822;
-  --color-line: rgb(255 255 255 / 0.08);
-  --color-line-strong: rgb(255 255 255 / 0.14);
-  --color-ink: #f5f5f7;
-  --color-muted: #a6a6b2;     /* 7.6:1 on bg */
-  --color-faint: #7c7c8a;     /* 4.6:1 on bg, for small print */
-  --color-crimson: #dc143c;   /* primary accent: fills, glows */
-  --color-crimson-ink: #f26b84; /* crimson for text on dark: 6.4:1 */
-  --color-navy: #1e3a8a;      /* secondary accent: fills, glows */
-  --color-navy-ink: #8aa4ff;  /* navy for text on dark: 7.9:1 */
-
-  --font-display: "Space Grotesk Variable", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
-
   --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -30,9 +17,12 @@
     text-rendering: optimizeLegibility;
     overflow-x: clip;
   }
-  ::selection { background: rgb(220 20 60 / 0.45); color: #fff; }
+  /* Phones widen the page to fit anything that pokes out sideways (glows, bleeds), even when
+     the body clips it, so the app's root clips too. `clip` keeps sticky and fixed elements working. */
+  #root { overflow-x: clip; }
+  ::selection { background: color-mix(in srgb, var(--color-accent) 45%, transparent); color: var(--color-ink); }
   :focus-visible {
-    outline: 2px solid var(--color-navy-ink);
+    outline: 2px solid var(--color-accent2-ink);
     outline-offset: 3px;
     border-radius: 6px;
   }
@@ -62,13 +52,13 @@
     font-weight: 600;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--color-crimson-ink);
+    color: var(--color-accent-ink);
   }
 
   .section-title {
     font-size: clamp(2rem, 4.5vw, 3.5rem);
     line-height: 1.05;
-    letter-spacing: -0.03em;
+    letter-spacing: var(--tracking-display);
     font-weight: 600;
   }
 
@@ -79,17 +69,17 @@
     transition: background-color 0.2s, border-color 0.2s, transform 0.2s var(--ease-expo);
   }
   .btn-primary {
-    background: var(--color-crimson); color: #fff;
-    box-shadow: 0 10px 40px -10px rgb(220 20 60 / 0.7), inset 0 1px 0 rgb(255 255 255 / 0.25);
+    background: var(--color-accent); color: var(--color-on-accent);
+    box-shadow: 0 10px 40px -12px color-mix(in srgb, var(--color-accent) 60%, transparent), inset 0 1px 0 rgb(255 255 255 / 0.3);
   }
-  .btn-primary:hover { background: #ef1f4b; }
+  .btn-primary:hover { background: var(--color-accent-hover); }
   .btn-ghost { border: 1px solid var(--color-line-strong); color: var(--color-ink); background: rgb(255 255 255 / 0.03); }
   .btn-ghost:hover { background: rgb(255 255 255 / 0.08); }
   .btn:active { transform: scale(0.97); }
 
   /* Soft radial glow placed behind key elements */
-  .glow-crimson { background: radial-gradient(closest-side, rgb(220 20 60 / 0.35), transparent); }
-  .glow-navy { background: radial-gradient(closest-side, rgb(30 58 138 / 0.55), transparent); }
+  .glow-accent { background: radial-gradient(closest-side, color-mix(in srgb, var(--color-accent) 30%, transparent), transparent); }
+  .glow-accent2 { background: radial-gradient(closest-side, color-mix(in srgb, var(--color-accent2) 55%, transparent), transparent); }
 
   /* Edge fade for the logo marquee */
   .mask-fade-x {

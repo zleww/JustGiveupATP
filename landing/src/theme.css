@@ -1,0 +1,22 @@
+/* JurisCards Arena: the game's night navy, gold and parchment with its info blue, Cinzel titles
+   and DM Sans text (css/arena.css). */
+@theme {
+  --color-bg: #060d14;
+  --color-surface: #0a1521;
+  --color-surface-2: #0f1d2c;
+  --color-line: rgb(245 241 232 / 0.08);
+  --color-line-strong: #2a3a4d;
+  --color-ink: #f5f1e8;
+  --color-muted: #9ba3af;        /* 7.7:1 on bg */
+  --color-faint: #7f8996;        /* 5.5:1 on bg, for small print */
+  --color-accent: #c89b53;       /* the game's gold: fills, glows */
+  --color-accent-ink: #e3b467;   /* gold for text on dark */
+  --color-accent-hover: #e3b467;
+  --color-on-accent: #060d14;    /* text on gold: 7.7:1 */
+  --color-accent2: #6ea8e0;      /* the game's info blue */
+  --color-accent2-ink: #6ea8e0;  /* 7.8:1 on bg */
+
+  --font-display: "Cinzel Variable", "Cinzel", "Times New Roman", serif;
+  --font-sans: "DM Sans Variable", "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --tracking-display: 0.01em;
+}

@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { revealChildren, useGSAP } from "../../lib/gsap";
+import { theme } from "../../theme";
 import SpotlightCard from "../reactbits/SpotlightCard";
 import Demo from "../ui/Demos";
 import { site } from "../../content";
@@ -24,7 +25,7 @@ export default function Features() {
 
   return (
     <section ref={scope} id="features" aria-labelledby="features-title" className="relative py-20 md:py-28">
-      <div className="glow-navy pointer-events-none absolute left-1/2 top-24 -z-10 h-[500px] w-[900px] max-w-full -translate-x-1/2 opacity-40 blur-3xl" aria-hidden="true" />
+      <div className="glow-accent2 pointer-events-none absolute left-1/2 top-24 -z-10 h-[500px] w-[900px] max-w-full -translate-x-1/2 opacity-40 blur-3xl" aria-hidden="true" />
       <div className="container-page">
         <div className="mb-12 max-w-2xl md:mb-16">
           <p data-reveal className="eyebrow">{features.eyebrow}</p>
@@ -39,12 +40,12 @@ export default function Features() {
             return (
               <li key={f.title} data-reveal data-delay={String((i % 3) * 0.06)} className={SPAN[f.span]}>
                 <SpotlightCard
-                  spotlightColor="rgba(220, 20, 60, 0.16)"
+                  spotlightColor={theme.spotlight}
                   theme="dark"
                   className={`glass h-full !rounded-3xl !border-line !bg-transparent p-6 md:p-7 ${wide ? "md:grid md:grid-cols-2 md:items-center md:gap-10" : "flex flex-col"}`}
                 >
                   <div className={wide ? "" : "mb-6"}>
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-line-strong bg-white/[0.04] text-crimson-ink">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-line-strong bg-white/[0.04] text-accent-ink">
                       <Icon size={19} aria-hidden="true" />
                     </span>
                     <h3 className="mt-5 text-xl font-semibold tracking-tight">{f.title}</h3>

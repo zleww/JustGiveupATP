@@ -43,7 +43,7 @@ export default function ProblemSolution() {
 
         <div data-pin className="grid gap-6 lg:grid-cols-12 lg:gap-8">
           <div className="glass relative overflow-hidden rounded-3xl p-7 md:p-10 lg:col-span-6">
-            <div className="glow-navy pointer-events-none absolute -left-24 -top-24 h-72 w-72 opacity-60" aria-hidden="true" />
+            <div className="glow-accent2 pointer-events-none absolute -left-24 -top-24 h-72 w-72 opacity-60" aria-hidden="true" />
             <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.14em] text-faint">
               <X size={16} aria-hidden="true" /> {problem.oldLabel}
             </h3>
@@ -60,14 +60,14 @@ export default function ProblemSolution() {
             </ScrollReveal>
           </div>
 
-          <div className="relative rounded-3xl border border-crimson/25 bg-gradient-to-b from-crimson/[0.08] to-transparent p-7 md:p-10 lg:col-span-6">
-            <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.14em] text-crimson-ink">
+          <div className="relative rounded-3xl border border-accent/25 bg-gradient-to-b from-accent/[0.08] to-transparent p-7 md:p-10 lg:col-span-6">
+            <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.14em] text-accent-ink">
               <Check size={16} aria-hidden="true" /> {problem.newLabel}
             </h3>
             <ul className="mt-6 space-y-3">
               {problem.points.map((p) => (
                 <li key={p.title} data-point className="glass flex gap-4 rounded-2xl p-5">
-                  <span className="mt-0.5 flex h-7 w-7 flex-none items-center justify-center rounded-full bg-crimson/15 text-crimson-ink" aria-hidden="true">
+                  <span className="mt-0.5 flex h-7 w-7 flex-none items-center justify-center rounded-full bg-accent/15 text-accent-ink" aria-hidden="true">
                     <Check size={15} />
                   </span>
                   <span>

@@ -1,6 +1,7 @@
 import { Fragment, useRef } from "react";
 import { Database, Globe, Server, ShieldCheck } from "lucide-react";
 import { gsap, MQ, revealChildren, useGSAP } from "../../lib/gsap";
+import { theme } from "../../theme";
 import { ARCHITECTURE } from "../../stack";
 
 const ICONS = [Globe, Server, ShieldCheck, Database];
@@ -42,8 +43,8 @@ export default function BuiltWith() {
     <section ref={scope} aria-labelledby="built-title" className="relative py-20 md:py-28">
       <svg width="0" height="0" className="absolute" aria-hidden="true">
         <defs>
-          <linearGradient id="wire-h" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopColor="#8AA4FF" /><stop offset="1" stopColor="#F26B84" /></linearGradient>
-          <linearGradient id="wire-v" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#8AA4FF" /><stop offset="1" stopColor="#F26B84" /></linearGradient>
+          <linearGradient id="wire-h" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopColor={theme.wire[0]} /><stop offset="1" stopColor={theme.wire[1]} /></linearGradient>
+          <linearGradient id="wire-v" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor={theme.wire[0]} /><stop offset="1" stopColor={theme.wire[1]} /></linearGradient>
         </defs>
       </svg>
       <div className="container-page">
@@ -62,14 +63,14 @@ export default function BuiltWith() {
               <Fragment key={node.title}>
                 {i > 0 && <li aria-hidden="true" className="list-none"><Connector /></li>}
                 <li data-reveal data-delay={String(i * 0.08)} className="glass relative flex-1 rounded-3xl p-6">
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-line-strong bg-white/[0.04] text-navy-ink">
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-line-strong bg-white/[0.04] text-accent2-ink">
                     <Icon size={19} aria-hidden="true" />
                   </span>
                   <h3 className="mt-5 text-lg font-semibold tracking-tight">{node.title}</h3>
                   <p className="text-sm text-faint">{node.sub}</p>
                   <ul className="mt-4 space-y-2 text-sm text-muted">
                     {node.points.map((p) => (
-                      <li key={p} className="flex gap-2"><span className="mt-2 h-1 w-1 flex-none rounded-full bg-crimson-ink" aria-hidden="true" />{p}</li>
+                      <li key={p} className="flex gap-2"><span className="mt-2 h-1 w-1 flex-none rounded-full bg-accent-ink" aria-hidden="true" />{p}</li>
                     ))}
                   </ul>
                 </li>

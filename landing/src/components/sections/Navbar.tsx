@@ -58,7 +58,7 @@ export default function Navbar() {
           <div
             aria-hidden="true"
             className="glass pointer-events-none absolute inset-0 scale-[0.98] rounded-full opacity-0 transition-[opacity,transform] duration-500 ease-[var(--ease-expo)] group-[.is-scrolled]:scale-100 group-[.is-scrolled]:opacity-100"
-            style={{ background: "rgb(18 18 26 / 0.6)" }}
+            style={{ background: "color-mix(in srgb, var(--color-surface) 70%, transparent)" }}
           />
           <a href={site.homeHref} className="relative flex items-center gap-2.5 rounded-full pl-1 pr-2" aria-label={`${site.name} home`}>
             <img src={site.logo} alt="" width={30} height={31} className="h-[30px] w-auto" />

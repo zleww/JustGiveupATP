@@ -225,3 +225,66 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
   else start();
 })(window);
+
+;// Show / hide toggle on every password field
+(function () {
+  var CSS =
+    ".pw-wrap{position:relative;display:block}" +
+    ".pw-wrap>input{padding-right:4.5rem!important;margin-top:0!important;margin-bottom:0!important}" +
+    ".pw-wrap>button.pw-toggle{position:absolute!important;top:50%!important;right:.35rem!important;left:auto!important;" +
+    "transform:translateY(-50%)!important;width:auto!important;min-width:0!important;height:auto!important;margin:0!important;" +
+    "border:0!important;background:transparent!important;box-shadow:none!important;color:inherit!important;opacity:.8;" +
+    "font:inherit;font-size:.8125rem!important;font-weight:600!important;line-height:1!important;letter-spacing:0!important;" +
+    "text-transform:none!important;padding:.45rem .55rem!important;border-radius:.4rem!important;cursor:pointer}" +
+    ".pw-wrap>button.pw-toggle:hover{opacity:1;background:rgba(127,127,127,.15)!important}" +
+    ".pw-wrap>button.pw-toggle:focus-visible{outline:2px solid currentColor;outline-offset:1px;opacity:1}";
+
+  function addToggles() {
+    var inputs = document.querySelectorAll('input[type="password"]:not([data-pw-toggle])');
+    if (!inputs.length) return;
+    if (!document.getElementById("pw-toggle-css")) {
+      var style = document.createElement("style");
+      style.id = "pw-toggle-css";
+      style.textContent = CSS;
+      document.head.appendChild(style);
+    }
+    inputs.forEach(function (input) {
+      input.setAttribute("data-pw-toggle", "");
+      var cs = getComputedStyle(input);
+      var wrap = document.createElement("span");
+      wrap.className = "pw-wrap";
+      wrap.style.marginTop = cs.marginTop;
+      wrap.style.marginBottom = cs.marginBottom;
+      wrap.style.color = cs.color;
+      input.parentNode.insertBefore(wrap, input);
+      wrap.appendChild(input);
+
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "pw-toggle";
+      btn.textContent = "Show";
+      btn.setAttribute("aria-label", "Show password");
+      btn.setAttribute("aria-pressed", "false");
+      if (input.id) btn.setAttribute("aria-controls", input.id);
+      btn.addEventListener("click", function () {
+        var show = input.type === "password";
+        input.type = show ? "text" : "password";
+        btn.textContent = show ? "Hide" : "Show";
+        btn.setAttribute("aria-label", show ? "Hide password" : "Show password");
+        btn.setAttribute("aria-pressed", String(show));
+        input.focus();
+      });
+      wrap.appendChild(btn);
+      // Hide it again on submit so the browser's password manager sees a password field
+      if (input.form) input.form.addEventListener("submit", function () {
+        input.type = "password";
+        btn.textContent = "Show";
+        btn.setAttribute("aria-label", "Show password");
+        btn.setAttribute("aria-pressed", "false");
+      });
+    });
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", addToggles);
+  else addToggles();
+})();

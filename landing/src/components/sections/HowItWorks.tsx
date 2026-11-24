@@ -47,10 +47,10 @@ export default function HowItWorks() {
         <div data-steps-pin className="hidden gap-12 lg:grid lg:grid-cols-12 motion-reduce:!hidden">
           <ol className="relative lg:col-span-5">
             <span className="absolute bottom-6 left-[19px] top-6 w-px bg-line-strong" aria-hidden="true" />
-            <span data-progress className="absolute bottom-6 left-[19px] top-6 w-px origin-top bg-gradient-to-b from-crimson to-navy-ink motion-reduce:hidden" aria-hidden="true" />
+            <span data-progress className="absolute bottom-6 left-[19px] top-6 w-px origin-top bg-gradient-to-b from-accent to-accent2-ink motion-reduce:hidden" aria-hidden="true" />
             {steps.items.map((s, i) => (
               <li key={s.title} data-step className="relative flex gap-6 pb-14 last:pb-0">
-                <span className="relative z-10 flex h-10 w-10 flex-none items-center justify-center rounded-full border border-crimson/40 bg-surface font-display text-sm font-semibold text-ink">
+                <span className="relative z-10 flex h-10 w-10 flex-none items-center justify-center rounded-full border border-accent/40 bg-surface font-display text-sm font-semibold text-ink">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <div className="pt-1.5">
@@ -61,7 +61,7 @@ export default function HowItWorks() {
             ))}
           </ol>
           <div className="relative lg:col-span-7">
-            <div className="glow-crimson pointer-events-none absolute -inset-10 -z-10 opacity-40 blur-2xl" aria-hidden="true" />
+            <div className="glow-accent pointer-events-none absolute -inset-10 -z-10 opacity-40 blur-2xl" aria-hidden="true" />
             <div className="relative aspect-[16/10.6]">
               {steps.items.map((s, i) => (
                 <div key={s.title} data-step-shot className="absolute inset-0" aria-hidden={i === 0 ? undefined : true}>
@@ -75,7 +75,7 @@ export default function HowItWorks() {
         <ol className="space-y-14 lg:hidden motion-reduce:lg:block">
           {steps.items.map((s, i) => (
             <li key={s.title} data-reveal>
-              <span className="font-display text-sm font-semibold text-crimson-ink">{String(i + 1).padStart(2, "0")}</span>
+              <span className="font-display text-sm font-semibold text-accent-ink">{String(i + 1).padStart(2, "0")}</span>
               <h3 className="mt-2 text-2xl font-semibold tracking-tight">{s.title}</h3>
               <p className="mb-6 mt-2 leading-relaxed text-muted">{s.text}</p>
               <BrowserFrame shot={s.shot} />

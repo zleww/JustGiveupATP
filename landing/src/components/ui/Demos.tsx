@@ -37,7 +37,7 @@ const Hl = ({ className }: { className: string }) => (
 const Typed = ({ cls, children }: { cls: string; children: ReactNode }) => (
   <span className="relative inline-block">
     {children}
-    <span className={`${cls} absolute inset-y-0 -right-px left-0 origin-right bg-[#15151d]`} />
+    <span className={`${cls} absolute inset-y-0 -right-px left-0 origin-right bg-surface-2`} />
   </span>
 );
 
@@ -54,15 +54,15 @@ function SearchDemo() {
   });
   return (
     <Shell refEl={ref}>
-      <div className="flex items-center gap-2 rounded-lg border border-line-strong bg-[#15151d] px-3 py-2 text-xs">
+      <div className="flex items-center gap-2 rounded-lg border border-line-strong bg-surface-2 px-3 py-2 text-xs">
         <span className="text-faint">⌕</span>
         <Typed cls="d-cover"><span className="text-ink">RA 10173 data privacy</span></Typed>
-        <span className="h-3.5 w-px animate-pulse bg-crimson-ink" />
+        <span className="h-3.5 w-px animate-pulse bg-accent-ink" />
       </div>
       <div className="mt-3 space-y-2">
         {["RA 10173 · Data Privacy Act", "RA 10175 · Cybercrime Law"].map((t) => (
           <div key={t} className="d-row flex items-center gap-2 rounded-md bg-white/[0.04] px-3 py-2 text-[11px] text-muted">
-            <span className="h-1.5 w-1.5 rounded-full bg-crimson" />{t}
+            <span className="h-1.5 w-1.5 rounded-full bg-accent" />{t}
           </div>
         ))}
       </div>
@@ -84,8 +84,8 @@ function BreakdownDemo() {
       <div className="grid gap-2 sm:grid-cols-2">
         {labels.map((l, i) => (
           <div key={l} className="relative isolate rounded-lg border border-line bg-white/[0.03] p-3">
-            <Hl className={`d-hl-${i} -inset-px border border-crimson-ink/50 bg-crimson/15`} />
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-crimson-ink">{l}</span>
+            <Hl className={`d-hl-${i} -inset-px border border-accent-ink/50 bg-accent/15`} />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-accent-ink">{l}</span>
             <span className={`d-fill-${i} mt-2 block space-y-1.5`}>
               <Bar w="92%" /><Bar w="68%" />
             </span>
@@ -109,7 +109,7 @@ function ChipsDemo() {
       <div className="flex flex-wrap gap-1.5">
         {chips.map((c, i) => (
           <span key={c} className="relative isolate rounded-full border border-line-strong bg-white/[0.03] px-2.5 py-1 text-[11px] text-ink">
-            <Hl className={`d-chip-${i} -inset-px bg-crimson`} />{c}
+            <Hl className={`d-chip-${i} -inset-px bg-accent`} />{c}
           </span>
         ))}
       </div>
@@ -128,9 +128,9 @@ function NotesDemo() {
     <Shell refEl={ref}>
       <div className="space-y-2">
         <div className="d-note max-w-[85%] rounded-xl rounded-tl-sm bg-white/[0.05] px-3 py-2 text-[11px] text-muted">Mnemonic: <span className="text-ink">"No consent, no collection."</span></div>
-        <div className="d-note ml-auto flex max-w-[80%] items-center justify-between gap-3 rounded-xl rounded-tr-sm bg-crimson/15 px-3 py-2 text-[11px] text-ink">
+        <div className="d-note ml-auto flex max-w-[80%] items-center justify-between gap-3 rounded-xl rounded-tr-sm bg-accent/15 px-3 py-2 text-[11px] text-ink">
           Saved me in recit!
-          <span className="flex items-center gap-1 text-crimson-ink"><span className="d-heart inline-block">♥</span><span className="d-count">3</span></span>
+          <span className="flex items-center gap-1 text-accent-ink"><span className="d-heart inline-block">♥</span><span className="d-count">3</span></span>
         </div>
       </div>
     </Shell>
@@ -145,11 +145,11 @@ function RatingDemo() {
   });
   return (
     <Shell refEl={ref} className="flex flex-col items-start justify-center gap-4">
-      <div className="flex gap-1.5 text-2xl text-crimson-ink">
+      <div className="flex gap-1.5 text-2xl text-accent-ink">
         {[0, 1, 2, 3, 4].map((i) => <span key={i} className={`d-star inline-block ${i === 4 ? "text-white/20" : ""}`}>★</span>)}
       </div>
       <span className="d-saved inline-flex items-center gap-2 rounded-full border border-line-strong px-3 py-1 text-[11px] text-ink">
-        <span className="h-1.5 w-1.5 rounded-full bg-crimson" /> Saved for later
+        <span className="h-1.5 w-1.5 rounded-full bg-accent" /> Saved for later
       </span>
     </Shell>
   );
@@ -164,14 +164,14 @@ function AccountDemo({ sites }: { sites: string[] }) {
   });
   return (
     <Shell refEl={ref} className="flex items-center !h-28 md:!h-32">
-      <div className="absolute inset-x-[10%] top-1/2 h-px bg-gradient-to-r from-navy-ink/30 via-crimson-ink/50 to-navy-ink/30" />
+      <div className="absolute inset-x-[10%] top-1/2 h-px bg-gradient-to-r from-accent2-ink/30 via-accent-ink/50 to-accent2-ink/30" />
       <span className="d-track absolute inset-x-[10%] top-1/2">
-        <span className="d-pulse absolute left-0 top-0 h-2 w-2 -translate-y-1/2 rounded-full bg-crimson-ink shadow-[0_0_16px_4px_rgb(242_107_132/0.6)]" />
+        <span className="d-pulse absolute left-0 top-0 h-2 w-2 -translate-y-1/2 rounded-full bg-accent-ink shadow-[0_0_16px_4px_color-mix(in_srgb,var(--color-accent-ink)_60%,transparent)]" />
       </span>
       <div className="relative flex w-full justify-between gap-2">
         {sites.map((s) => (
           <span key={s} className="relative isolate rounded-full border border-line-strong bg-bg px-3 py-1.5 text-[11px] font-medium text-ink md:px-4 md:text-xs">
-            <Hl className="d-ring -inset-px border border-crimson-ink/70 bg-crimson/10" />{s}
+            <Hl className="d-ring -inset-px border border-accent-ink/70 bg-accent/10" />{s}
           </span>
         ))}
       </div>
@@ -189,11 +189,11 @@ function FlipDemo() {
     <Shell refEl={ref} className="flex items-center justify-center [perspective:800px]">
       <div className="d-card relative h-24 w-44 [transform-style:preserve-3d]">
         <div className="absolute inset-0 flex flex-col justify-center rounded-lg border border-line-strong bg-surface-2 p-3 [backface-visibility:hidden]">
-          <span className="text-[10px] uppercase tracking-wider text-crimson-ink">RA 10173</span>
+          <span className="text-[10px] uppercase tracking-wider text-accent-ink">RA 10173</span>
           <span className="mt-1 text-xs text-ink">What does the Data Privacy Act do?</span>
         </div>
-        <div className="absolute inset-0 flex flex-col justify-center rounded-lg border border-crimson/40 bg-crimson/10 p-3 [backface-visibility:hidden] [transform:rotateY(180deg)]">
-          <span className="text-[10px] uppercase tracking-wider text-crimson-ink">Answer</span>
+        <div className="absolute inset-0 flex flex-col justify-center rounded-lg border border-accent/40 bg-accent/10 p-3 [backface-visibility:hidden] [transform:rotateY(180deg)]">
+          <span className="text-[10px] uppercase tracking-wider text-accent-ink">Answer</span>
           <span className="mt-1 text-[11px] text-ink">Protects personal data; consent before collection.</span>
         </div>
       </div>
@@ -217,7 +217,7 @@ function QuizDemo() {
       <div className="grid grid-cols-2 gap-1.5 text-[11px]">
         {["Gloria Macapagal Arroyo", "Benigno Aquino III", "Rodrigo Duterte", "Fidel V. Ramos"].map((o, i) => (
           <span key={o} className="relative isolate rounded-md border border-line bg-white/[0.03] px-2 py-1.5 text-muted">
-            {i === 1 && <><Hl className="d-pick -inset-px border border-navy-ink/70" /><Hl className="d-right -inset-px border border-green-400/70 bg-green-500/15" /></>}
+            {i === 1 && <><Hl className="d-pick -inset-px border border-accent2-ink/70" /><Hl className="d-right -inset-px border border-green-400/70 bg-green-500/15" /></>}
             {o}
           </span>
         ))}
@@ -237,7 +237,7 @@ function ProgressDemo() {
       {rows.map(([label, v]) => (
         <div key={label}>
           <div className="mb-1 flex justify-between text-[10px] text-muted"><span>{label}</span><span>{Math.round(v * 100)}%</span></div>
-          <div className="h-1.5 rounded-full bg-white/[0.06]"><div className="d-bar h-full rounded-full bg-gradient-to-r from-navy to-crimson" style={{ width: `${v * 100}%` }} /></div>
+          <div className="h-1.5 rounded-full bg-white/[0.06]"><div className="d-bar h-full rounded-full bg-gradient-to-r from-accent2 to-accent" style={{ width: `${v * 100}%` }} /></div>
         </div>
       ))}
     </Shell>
@@ -254,9 +254,9 @@ function WriteDemo() {
   });
   return (
     <Shell refEl={ref} className="space-y-2">
-      <div className="rounded-md border border-line bg-[#15151d] px-3 py-2 text-[11px]"><span className="text-faint">Front </span><Typed cls="d-c1"><span className="text-ink">What is RA 11313?</span></Typed></div>
-      <div className="rounded-md border border-line bg-[#15151d] px-3 py-2 text-[11px]"><span className="text-faint">Back </span><Typed cls="d-c2"><span className="text-ink">The Safe Spaces Act.</span></Typed></div>
-      <span className="d-new inline-block rounded-full bg-crimson px-2.5 py-0.5 text-[10px] font-semibold text-white opacity-0">Card added</span>
+      <div className="rounded-md border border-line bg-surface-2 px-3 py-2 text-[11px]"><span className="text-faint">Front </span><Typed cls="d-c1"><span className="text-ink">What is RA 11313?</span></Typed></div>
+      <div className="rounded-md border border-line bg-surface-2 px-3 py-2 text-[11px]"><span className="text-faint">Back </span><Typed cls="d-c2"><span className="text-ink">The Safe Spaces Act.</span></Typed></div>
+      <span className="d-new inline-block rounded-full bg-accent px-2.5 py-0.5 text-[10px] font-semibold text-on-accent opacity-0">Card added</span>
     </Shell>
   );
 }
@@ -274,11 +274,11 @@ function HpDemo() {
   });
   return (
     <Shell refEl={ref}>
-      <div className="flex items-center justify-between text-[10px] text-muted"><span>Threat HP</span><span className="d-hit text-crimson-ink opacity-0">-30</span></div>
-      <div className="mt-1 h-2 rounded-full bg-white/[0.06]"><div className="d-hp h-full origin-left rounded-full bg-crimson" /></div>
+      <div className="flex items-center justify-between text-[10px] text-muted"><span>Threat HP</span><span className="d-hit text-accent-ink opacity-0">-30</span></div>
+      <div className="mt-1 h-2 rounded-full bg-white/[0.06]"><div className="d-hp h-full origin-left rounded-full bg-accent" /></div>
       <div className="mt-4 flex items-end justify-between">
-        <span className="d-play rounded-md border border-navy-ink/50 bg-navy/30 px-2.5 py-2 text-[10px] text-ink">RA 10175<br /><span className="text-faint">Cybercrime</span></span>
-        <span className="d-win scale-75 rounded-full bg-crimson px-3 py-1 text-[11px] font-semibold text-white opacity-0">Case won</span>
+        <span className="d-play rounded-md border border-accent2-ink/50 bg-accent2/30 px-2.5 py-2 text-[10px] text-ink">RA 10175<br /><span className="text-faint">Cybercrime</span></span>
+        <span className="d-win scale-75 rounded-full bg-accent px-3 py-1 text-[11px] font-semibold text-on-accent opacity-0">Case won</span>
       </div>
     </Shell>
   );
@@ -294,8 +294,8 @@ function TiersDemo() {
     <Shell refEl={ref} className="flex items-end gap-2">
       {[["Tier 1", "Infractions", "h-12"], ["Tier 2", "Violations", "h-20"], ["Tier 3", "Boss litigation", "h-28"]].map(([t, n, h], i) => (
         <div key={t} className={`d-tier relative isolate flex ${h} flex-1 flex-col justify-end rounded-md border border-line bg-white/[0.04] p-2`}>
-          {i === 2 && <Hl className="d-boss -inset-px border border-crimson-ink/60 bg-crimson/10" />}
-          <span className="text-[10px] font-semibold text-crimson-ink">{t}</span>
+          {i === 2 && <Hl className="d-boss -inset-px border border-accent-ink/60 bg-accent/10" />}
+          <span className="text-[10px] font-semibold text-accent-ink">{t}</span>
           <span className="text-[10px] text-muted">{n}</span>
         </div>
       ))}
@@ -314,7 +314,7 @@ function RankDemo() {
   return (
     <Shell refEl={ref} className="space-y-1.5">
       <div className="d-rank d-rank-down flex justify-between rounded-md bg-white/[0.04] px-3 py-2 text-[11px] text-muted"><span>Law Student</span><span>2 cases</span></div>
-      <div className="d-rank d-rank-up flex justify-between rounded-md border border-crimson/30 bg-crimson/10 px-3 py-2 text-[11px] text-ink"><span>You</span><span>3 cases</span></div>
+      <div className="d-rank d-rank-up flex justify-between rounded-md border border-accent/30 bg-accent/10 px-3 py-2 text-[11px] text-ink"><span>You</span><span>3 cases</span></div>
       <div className="d-rank flex justify-between rounded-md bg-white/[0.04] px-3 py-2 text-[11px] text-muted"><span>Guest</span><span>not listed</span></div>
     </Shell>
   );
