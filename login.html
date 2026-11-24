@@ -77,13 +77,13 @@
           <a class="guest-link" id="forgotLink" href="#forgot" style="margin-top: 10px;">Forgot password?</a>
         </form>
 
-        <!-- Forgot password: emails a one-time link to the account's confirmed email -->
+        <!-- Forgot password: emails a one-time link to the email on the account -->
         <form id="forgotForm" novalidate hidden>
           <h2 style="font-family: var(--font-display); font-size: 1.3rem; margin-bottom: 6px;">Reset your password</h2>
-          <p class="hint" style="margin-bottom: 14px;">Enter your username or your account's email. We will email you a link that works for 30 minutes.</p>
+          <p class="hint" style="margin-bottom: 14px;">Enter the email address you signed up with. We will email you a link that works for 30 minutes.</p>
           <div class="field">
-            <label for="forgotLogin">Username or email</label>
-            <input id="forgotLogin" autocomplete="username" maxlength="254" required>
+            <label for="forgotLogin">Email</label>
+            <input id="forgotLogin" type="email" autocomplete="email" inputmode="email" maxlength="254" required>
           </div>
           <button class="btn btn-gold btn-wide" id="forgotBtn" type="submit">Send reset link</button>
           <p class="msg" id="forgotMsg" role="status"></p>
@@ -165,7 +165,7 @@
       document.querySelector(".tabs").style.display = open ? "none" : "";
       $("loginForm").hidden = open;
       $("signupForm").hidden = true;
-      if (open) { $("forgotLogin").value = $("username").value.trim(); $("forgotLogin").focus(); }
+      if (open) { const typed = $("username").value.trim(); $("forgotLogin").value = typed.includes("@") ? typed : ""; $("forgotLogin").focus(); }
       else show("login");
     }
     $("forgotLink").addEventListener("click", (e) => { e.preventDefault(); showForgot(true); });
@@ -175,13 +175,13 @@
     $("forgotForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const msg = $("forgotMsg");
-      const login = $("forgotLogin").value.trim();
-      if (!login) { msg.className = "msg err"; msg.textContent = "Enter your username or email."; return; }
+      const email = $("forgotLogin").value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.className = "msg err"; msg.textContent = "Enter the email address on your account."; return; }
       $("forgotBtn").disabled = true;
       msg.textContent = "";
       try {
         const res = await fetch(API + "/auth/forgot-password", {
-          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ login }),
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }),
         });
         msg.className = "msg " + (res.ok ? "ok" : "err");
         msg.textContent = res.ok ? (await res.json()).detail : await errorMessage(res);
