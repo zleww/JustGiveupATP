@@ -116,11 +116,38 @@ document.addEventListener("DOMContentLoaded", () => {
   // ==========================================================
   // 3. DOCKET SCREEN
   // ==========================================================
+  // Docket order per tier after "Reshuffle docket" (case ids); empty = the usual order.
+  const docketOrder = {};
+
+  function orderedCases(t) {
+    const cases = JURIS_CASES.filter((c) => c.tier === t);
+    const order = docketOrder[t];
+    if (!order) return cases;
+    const byId = Object.fromEntries(cases.map((c) => [c.id, c]));
+    return order.map((id) => byId[id]).filter(Boolean);
+  }
+
+  // Shuffle the playable cases inside each tier; locked cases keep their places.
+  function reshuffleDocket() {
+    [1, 2, 3].forEach((t) => {
+      const cases = orderedCases(t);
+      const open = cases.filter((c) => !lockReason(c));
+      for (let i = open.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [open[i], open[j]] = [open[j], open[i]];
+      }
+      let k = 0;
+      docketOrder[t] = cases.map((c) => (lockReason(c) ? c : open[k++]).id);
+    });
+    renderDocket();
+    showToast("Docket reshuffled.");
+  }
+
   function renderDocket() {
     const won = wonIds();
     let hidden = 0;
     $("docketList").innerHTML = [1, 2, 3].map((t) => {
-      const cases = JURIS_CASES.filter((c) => c.tier === t).filter((c) => {
+      const cases = orderedCases(t).filter((c) => {
         const skip = prefs.hide_won && won.has(c.id);
         if (skip) hidden += 1;
         return !skip;
@@ -502,6 +529,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // ==========================================================
   // 8. EVENT WIRING
   // ==========================================================
+  $("reshuffleDocket").addEventListener("click", reshuffleDocket);
+
   $("docketList").addEventListener("click", (e) => {
     const tile = e.target.closest("[data-case]");
     if (tile) startCase(tile.dataset.case);

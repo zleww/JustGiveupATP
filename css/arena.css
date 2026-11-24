@@ -699,3 +699,7 @@ body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after 
 .bonus-feedback { margin-top: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; color: var(--text-muted); }
 .bonus-feedback:empty { display: none; }
 .bonus-score { font-family: var(--font-card); font-size: 1.6rem; color: var(--gold-bright); margin: 6px 0; }
+
+/* Reshuffle docket button */
+.docket-tools { display: flex; justify-content: flex-end; margin: 0 0 14px; }
+@media (max-width: 600px) { .docket-tools .btn { width: 100%; } }
