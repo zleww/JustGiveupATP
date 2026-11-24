@@ -686,3 +686,16 @@ body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after 
   .menu-name { display: none; }
   .menu-btn { padding: 3px; }
 }
+
+/* Verdict bonus round: "Name that law" from the full list */
+.bonus { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); text-align: left; }
+.bonus:empty { display: none; }
+.bonus-title { margin: 8px 0 12px; color: var(--text-main); line-height: 1.5; overflow-wrap: anywhere; }
+.bonus-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 8px; }
+.bonus-option { justify-content: flex-start; text-align: left; min-height: 44px; white-space: normal; }
+.bonus-option.is-right { border-color: var(--success); color: var(--success); }
+.bonus-option.is-wrong { border-color: var(--danger); color: var(--danger); }
+.bonus-option:disabled { opacity: 1; cursor: default; }
+.bonus-feedback { margin-top: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; color: var(--text-muted); }
+.bonus-feedback:empty { display: none; }
+.bonus-score { font-family: var(--font-card); font-size: 1.6rem; color: var(--gold-bright); margin: 6px 0; }

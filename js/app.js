@@ -54,6 +54,13 @@
       }
     },
 
+    /** GET /laws/draw: a new random set from L-Lawliet's full list (laws without a guide)
+        on every call, for the "Name that law" bonus round. Never downloads the whole list. */
+    async drawLaws(count = 12) {
+      const result = await this._get(`/laws/draw?count=${encodeURIComponent(count)}`);
+      return result.laws || [];
+    },
+
     /** GET /laws/search?q= for Search Precedent. Guests only search their 10 laws. */
     async searchLaws(query) {
       const q = String(query || "").trim();

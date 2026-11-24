@@ -318,6 +318,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : '<p style="margin-top:14px">Misapplied statutes and the docket clock drained your Juris Power. Review the elements and try again.</p>'}
       ${rankUp}
       <p class="muted" id="saveNote" style="margin-top:10px"></p>
+      <div class="bonus" id="bonusRound" aria-live="polite"></div>
       <div class="verdict-actions">
         <button class="btn btn-gold" type="button" id="verdictDocket">Back to docket</button>
         <button class="btn btn-ghost" type="button" id="verdictRetry">${won ? "Replay case" : "Retry case"}</button>
@@ -327,6 +328,7 @@ document.addEventListener("DOMContentLoaded", () => {
     $("verdictRetry").onclick = () => { closeModal("verdictModal"); startCase(c.id); };
     $("verdictDocket").focus();
     renderRank();
+    startBonusRound();
 
     const note = $("saveNote");
     if (!signedIn) {
@@ -339,6 +341,79 @@ document.addEventListener("DOMContentLoaded", () => {
     api("/arena/results", { method: "POST", body })
       .then(async (res) => { note.textContent = res.ok ? "Saved to your trial history." : await errorMessage(res); })
       .catch(() => { note.textContent = "Could not save this result."; });
+  }
+
+  // ==========================================================
+  // 5b. BONUS ROUND: "Name that law", 3 questions drawn at random from the full list
+  // (about 1,200 national laws without a guide). Practice only: it does not change the result.
+  // ==========================================================
+  const BONUS_QUESTIONS = 3;
+
+  function shuffled(list) {
+    const arr = [...list];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  async function startBonusRound() {
+    const box = $("bonusRound");
+    if (!box) return;
+    box.innerHTML = '<p class="muted">Drawing laws for the bonus round…</p>';
+    let pool;
+    try {
+      pool = await JurisAPI.drawLaws(BONUS_QUESTIONS * 4);
+    } catch (err) {
+      box.innerHTML = "";
+      return;
+    }
+    if (pool.length < 4) { box.innerHTML = ""; return; }
+    const name = (l) => l.label || l.ra_number;
+    const questions = pool.slice(0, BONUS_QUESTIONS).map((answer, q) => {
+      const others = pool.filter((l) => l.id !== answer.id);
+      const wrong = shuffled(others).slice(0, 3);
+      return { answer, options: shuffled([answer, ...wrong]), n: q + 1 };
+    });
+    let right = 0;
+
+    function show(i) {
+      if (i >= questions.length) {
+        box.innerHTML = `
+          <p class="eyebrow">Bonus round</p>
+          <p class="bonus-score">${right} of ${questions.length} correct</p>
+          <p class="muted">Practice only, from the full list of Philippine laws. Each round draws new ones.</p>
+          <button class="btn btn-ghost" type="button" id="bonusAgain">Another round</button>`;
+        $("bonusAgain").onclick = startBonusRound;
+        return;
+      }
+      const q = questions[i];
+      box.innerHTML = `
+        <p class="eyebrow">Bonus round · Name that law (${q.n} of ${questions.length})</p>
+        <p class="bonus-title">"${esc(q.answer.official_title)}"</p>
+        <div class="bonus-options" role="group" aria-label="Which law is it?">
+          ${q.options.map((o) => `<button class="btn btn-ghost bonus-option" type="button" data-id="${esc(o.id)}">${esc(name(o))}</button>`).join("")}
+        </div>
+        <p class="bonus-feedback" id="bonusFeedback"></p>`;
+      box.querySelectorAll(".bonus-option").forEach((btn) => {
+        btn.onclick = () => {
+          const ok = String(btn.dataset.id) === String(q.answer.id);
+          if (ok) right++;
+          box.querySelectorAll(".bonus-option").forEach((b) => {
+            b.disabled = true;
+            if (String(b.dataset.id) === String(q.answer.id)) b.classList.add("is-right");
+            else if (b === btn) b.classList.add("is-wrong");
+          });
+          const year = q.answer.year ? `, ${esc(q.answer.year)}` : "";
+          $("bonusFeedback").innerHTML = `${ok ? "Correct." : `It is ${esc(name(q.answer))}${year}.`}
+            <button class="btn btn-gold bonus-next" type="button" id="bonusNext">${i + 1 < questions.length ? "Next" : "See score"}</button>`;
+          $("bonusNext").onclick = () => show(i + 1);
+          $("bonusNext").focus();
+        };
+      });
+    }
+    show(0);
   }
 
   // ==========================================================
